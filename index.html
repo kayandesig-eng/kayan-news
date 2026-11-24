@@ -4,79 +4,146 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>كيان نيوز | KAYAN NEWS</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1120'/%3E%3Cpath d='M18 16h8v14l14-14h10L34 32l17 16H40L26 35v13h-8V16z' fill='%2338bdf8'/%3E%3Ccircle cx='49' cy='15' r='5' fill='%23ef4444'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <h1>كيان نيوز</h1>
-      <span>KAYAN NEWS</span>
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="38" height="38">
+          <rect width="64" height="64" rx="14" fill="#1e293b" />
+          <path d="M18 16h8v14l14-14h10L34 32l17 16H40L26 35v13h-8V16z" fill="#38bdf8" />
+          <circle cx="49" cy="15" r="5" fill="#ef4444" />
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>كيان نيوز</h1>
+        <span>KAYAN NEWS</span>
+      </div>
     </div>
-    <button id="toggleAdminBtn" class="btn-admin">لوحة الإدارة</button>
+    <div class="top-actions">
+      <button id="refreshAutoBtn" class="btn-sync" type="button">تحديث المصادر</button>
+      <button id="toggleAdminBtn" class="btn-admin" type="button">لوحة الإدارة</button>
+    </div>
   </header>
 
   <div class="ticker">
     <span class="ticker-badge">عاجل</span>
     <div class="ticker-track">
-      <div id="breakingTicker" class="ticker-content">مرحباً بكم في منصة كيان نيوز الإخبارية</div>
+      <div id="breakingTicker" class="ticker-content">مرحباً بكم في منصة كيان نيوز الإخبارية — متابعة مستمرة على مدار الساعة</div>
     </div>
   </div>
 
   <nav class="categories" id="categoryNav">
-    <button data-cat="الكل" class="active">الكل</button>
-    <button data-cat="محلية">محلية</button>
-    <button data-cat="عربية">عربية</button>
-    <button data-cat="دولية">دولية</button>
-    <button data-cat="سياسة">سياسة</button>
-    <button data-cat="رياضة">رياضة</button>
-    <button data-cat="منوعات">منوعات</button>
+    <button data-cat="الكل" class="active" type="button">الكل</button>
+    <button data-cat="محلية" type="button">محلية</button>
+    <button data-cat="رياضة محلية" type="button">رياضة محلية</button>
+    <button data-cat="عربية" type="button">عربية</button>
+    <button data-cat="رياضة عربية" type="button">رياضة عربية</button>
+    <button data-cat="دولية" type="button">دولية</button>
+    <button data-cat="رياضة دولية" type="button">رياضة دولية</button>
+    <button data-cat="سياسة" type="button">سياسة</button>
+    <button data-cat="منوعات" type="button">منوعات</button>
   </nav>
+
+  <div class="controls-bar">
+    <input type="search" id="searchInput" placeholder="ابحث في أخبار كيان نيوز أو المصدر..." aria-label="ابحث في الأخبار" />
+    <span id="autoSyncStatus" class="sync-status">جاهز للمزامنة</span>
+  </div>
 
   <section id="adminPanel" class="admin-panel hidden">
     <div class="admin-header">
-      <h2>لوحة إدارة كيان نيوز</h2>
+      <h2 id="formHeading">إدارة الأخبار والمصادر</h2>
       <button id="lockAdminBtn" class="btn-secondary" type="button">قفل اللوحة</button>
     </div>
 
     <form id="newsForm" class="admin-box">
-      <h3>نشر خبر يدوي</h3>
+      <h3 id="newsFormTitle">إضافة خبر جديد</h3>
+      <input type="hidden" id="editNewsId" />
       <input type="text" id="newsTitle" placeholder="عنوان الخبر" required />
+      <input type="text" id="newsSource" placeholder="اسم المصدر (مثال: كيان نيوز، الجزيرة، بي إن سبورت)" />
       <input type="url" id="newsImage" placeholder="رابط صورة الخبر (اختياري)" />
       <select id="newsCategory">
         <option value="محلية">محلية</option>
+        <option value="رياضة محلية">رياضة محلية</option>
         <option value="عربية">عربية</option>
+        <option value="رياضة عربية">رياضة عربية</option>
         <option value="دولية">دولية</option>
+        <option value="رياضة دولية">رياضة دولية</option>
         <option value="سياسة">سياسة</option>
-        <option value="رياضة">رياضة</option>
         <option value="منوعات">منوعات</option>
       </select>
       <label class="check-row">
         <input type="checkbox" id="isBreaking" /> تثبيت في شريط العاجل
       </label>
-      <textarea id="newsBody" rows="3" placeholder="تفاصيل الخبر..." required></textarea>
-      <button type="submit" class="btn-primary">نشر الخبر الآن</button>
+      <textarea id="newsBody" rows="4" placeholder="تفاصيل الخبر الكاملة..." required></textarea>
+      <div class="form-btns">
+        <button type="submit" id="submitNewsBtn" class="btn-primary">نشر الخبر</button>
+        <button type="button" id="cancelEditBtn" class="btn-secondary hidden">إلغاء التعديل</button>
+      </div>
     </form>
 
     <form id="rssForm" class="admin-box">
-      <h3>جلب تلقائي من مصدر RSS</h3>
-      <input type="url" id="rssUrl" placeholder="أدخل رابط RSS (مثال: https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9)" required />
+      <h3>إضافة مصدر RSS مخصص</h3>
+      <input type="url" id="rssUrl" placeholder="أدخل رابط RSS" required />
+      <input type="text" id="rssSourceName" placeholder="اسم المصدر (اختياري)" />
       <select id="rssCategory">
-        <option value="عربية">عربية</option>
-        <option value="دولية">دولية</option>
-        <option value="سياسة">سياسة</option>
-        <option value="رياضة">رياضة</option>
+        <option value="تلقائي">تصنيف تلقائي حسب المحتوى</option>
         <option value="محلية">محلية</option>
+        <option value="رياضة محلية">رياضة محلية</option>
+        <option value="عربية">عربية</option>
+        <option value="رياضة عربية">رياضة عربية</option>
+        <option value="دولية">دولية</option>
+        <option value="رياضة دولية">رياضة دولية</option>
+        <option value="سياسة">سياسة</option>
         <option value="منوعات">منوعات</option>
       </select>
-      <button type="submit" id="fetchRssBtn" class="btn-rss">سحب ونشر آخر الأخبار</button>
+      <button type="submit" id="fetchRssBtn" class="btn-rss">سحب ونشر من المصدر</button>
       <small id="rssStatus" class="status-msg"></small>
     </form>
   </section>
 
   <main id="newsFeed" class="news-grid"></main>
 
+  <div id="articleModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <button id="closeModalBtn" class="modal-close" type="button">✕</button>
+      <img id="modalImg" class="modal-img hidden" alt="" />
+      <div class="news-meta">
+        <span id="modalCat" class="news-cat"></span>
+        <span id="modalSource" class="news-source"></span>
+        <span id="modalDate"></span>
+      </div>
+      <h2 id="modalTitle"></h2>
+      <p id="modalBody"></p>
+      <a id="modalLink" class="source-link hidden" target="_blank" rel="noopener noreferrer">قراءة من المصدر الأصلي</a>
+    </div>
+  </div>
+
   <footer class="footer">
-    <p>© 2026 كيان نيوز | KAYAN NEWS - جميع الحقوق محفوظة</p>
+    <div class="footer-grid">
+      <div class="footer-col" id="about">
+        <h3>حول كيان نيوز</h3>
+        <p>منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.</p>
+      </div>
+      <div class="footer-col" id="overview">
+        <h3>نبذة تعريفية</h3>
+        <p>نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.</p>
+      </div>
+      <div class="footer-col" id="contact">
+        <h3>تواصل معنا</h3>
+        <p>للمراسلات، الإعلانات، أو إرسال الأخبار والملاحظات:</p>
+        <ul class="contact-list">
+          <li>الحساب الرسمي: <strong>@muad.alwahidi</strong></li>
+          <li>المؤسسة: <strong>مؤسسة كيان للتصميم / KAYAN DESIGNS</strong></li>
+          <li><a href="https://wa.me/?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D9%83%D9%8A%D8%A7%D9%86%20%D9%86%D9%8A%D9%88%D8%B2" target="_blank" rel="noopener noreferrer">التواصل عبر واتساب</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 كيان نيوز | KAYAN NEWS — جميع الحقوق محفوظة</p>
+    </div>
   </footer>
 
   <script type="module" src="script.js"></script>
