@@ -10,16 +10,17 @@
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="brand-logo" aria-hidden="true">
-        <svg viewBox="0 0 64 64" width="38" height="38">
+      <div class="brand-logo" id="brandLogoBox" aria-hidden="true">
+        <svg id="defaultLogoSvg" viewBox="0 0 64 64" width="38" height="38">
           <rect width="64" height="64" rx="14" fill="#1e293b" />
           <path d="M18 16h8v14l14-14h10L34 32l17 16H40L26 35v13h-8V16z" fill="#38bdf8" />
           <circle cx="49" cy="15" r="5" fill="#ef4444" />
         </svg>
+        <img id="customLogoImg" class="custom-logo-img hidden" alt="شعار الموقع" />
       </div>
       <div class="brand-text">
-        <h1>كيان نيوز</h1>
-        <span>KAYAN NEWS</span>
+        <h1 id="siteTitleText">كيان نيوز</h1>
+        <span id="siteSubtitleText">KAYAN NEWS</span>
       </div>
     </div>
     <div class="top-actions">
@@ -54,7 +55,7 @@
 
   <section id="adminPanel" class="admin-panel hidden">
     <div class="admin-header">
-      <h2 id="formHeading">إدارة الأخبار والمصادر</h2>
+      <h2 id="formHeading">إدارة الأخبار والمصادر والموقع</h2>
       <button id="lockAdminBtn" class="btn-secondary" type="button">قفل اللوحة</button>
     </div>
 
@@ -102,6 +103,38 @@
       <button type="submit" id="fetchRssBtn" class="btn-rss">سحب ونشر من المصدر</button>
       <small id="rssStatus" class="status-msg"></small>
     </form>
+
+    <form id="siteSettingsForm" class="admin-box">
+      <h3>تخصيص شكل الموقع والصور وطرق التواصل (للمدير فقط)</h3>
+      <label class="field-label">اسم الموقع والعنوان الفرعي</label>
+      <input type="text" id="cfgSiteName" placeholder="اسم الموقع (مثال: كيان نيوز)" required />
+      <input type="text" id="cfgSubtitle" placeholder="العنوان الفرعي (مثال: KAYAN NEWS)" />
+
+      <label class="field-label">رابط صورة الشعار في الهيدر (اتركه فارغاً لاستخدام الشعار الافتراضي)</label>
+      <input type="url" id="cfgLogoUrl" placeholder="https://..." />
+
+      <label class="field-label">اللون الرئيسي للموقع والشريط العلوي</label>
+      <div class="color-row">
+        <input type="color" id="cfgAccentColor" value="#0284c7" />
+        <span id="accentHexLabel">#0284c7</span>
+      </div>
+
+      <label class="field-label">نصوص «حول» و«نبذة تعريفية» في أسفل الموقع</label>
+      <textarea id="cfgAboutText" rows="2" placeholder="نص قسم حول كيان نيوز..."></textarea>
+      <textarea id="cfgOverviewText" rows="2" placeholder="نص النبذة التعريفية..."></textarea>
+
+      <label class="field-label">بيانات وطرق التواصل</label>
+      <input type="text" id="cfgHandleText" placeholder="حساب التواصل (مثال: @muad.alwahidi)" />
+      <input type="text" id="cfgOrgText" placeholder="اسم الجهة أو المؤسسة (مثال: مؤسسة كيان للتصميم / KAYAN DESIGNS)" />
+      <input type="url" id="cfgWhatsappUrl" placeholder="رابط واتساب أو تواصل (https://wa.me/...)" />
+      <input type="text" id="cfgWhatsappLabel" placeholder="نص رابط التواصل (مثال: التواصل عبر واتساب)" />
+
+      <div class="form-btns">
+        <button type="submit" class="btn-primary">حفظ إعدادات الموقع</button>
+        <button type="button" id="resetSettingsBtn" class="btn-secondary">استعادة الافتراضي</button>
+      </div>
+      <small id="settingsStatus" class="status-msg"></small>
+    </form>
   </section>
 
   <main id="newsFeed" class="news-grid"></main>
@@ -125,24 +158,24 @@
     <div class="footer-grid">
       <div class="footer-col" id="about">
         <h3>حول كيان نيوز</h3>
-        <p>منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.</p>
+        <p id="footerAboutText">منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.</p>
       </div>
       <div class="footer-col" id="overview">
         <h3>نبذة تعريفية</h3>
-        <p>نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.</p>
+        <p id="footerOverviewText">نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.</p>
       </div>
       <div class="footer-col" id="contact">
         <h3>تواصل معنا</h3>
         <p>للمراسلات، الإعلانات، أو إرسال الأخبار والملاحظات:</p>
         <ul class="contact-list">
-          <li>الحساب الرسمي: <strong>@muad.alwahidi</strong></li>
-          <li>المؤسسة: <strong>مؤسسة كيان للتصميم / KAYAN DESIGNS</strong></li>
-          <li><a href="https://wa.me/?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D9%83%D9%8A%D8%A7%D9%86%20%D9%86%D9%8A%D9%88%D8%B2" target="_blank" rel="noopener noreferrer">التواصل عبر واتساب</a></li>
+          <li>الحساب الرسمي: <strong id="footerHandleText">@muad.alwahidi</strong></li>
+          <li>المؤسسة: <strong id="footerOrgText">مؤسسة كيان للتصميم / KAYAN DESIGNS</strong></li>
+          <li><a id="footerWhatsappLink" href="https://wa.me/" target="_blank" rel="noopener noreferrer">التواصل عبر واتساب</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 كيان نيوز | KAYAN NEWS — جميع الحقوق محفوظة</p>
+      <p id="footerCopyrightText">© 2026 كيان نيوز | KAYAN NEWS — جميع الحقوق محفوظة</p>
     </div>
   </footer>
 

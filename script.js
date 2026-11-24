@@ -1,7 +1,22 @@
 const DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/news.json";
+const SETTINGS_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/settings.json";
 const STORAGE_KEY = "kayan_news_items_v3";
+const SETTINGS_STORAGE_KEY = "kayan_news_settings_v1";
 const AUTO_FETCH_KEY = "kayan_news_last_auto_fetch_v3";
 const ADMIN_PASSCODE = "kayan2026";
+
+const DEFAULT_SETTINGS = {
+  siteName: "كيان نيوز",
+  subtitle: "KAYAN NEWS",
+  logoUrl: "",
+  accentColor: "#0284c7",
+  aboutText: "منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.",
+  overviewText: "نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.",
+  handleText: "@muad.alwahidi",
+  orgText: "مؤسسة كيان للتصميم / KAYAN DESIGNS",
+  whatsappUrl: "https://wa.me/",
+  whatsappLabel: "التواصل عبر واتساب"
+};
 
 const TRUSTED_FEEDS = [
   { name: "الجزيرة", url: "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9", hint: "عربية" },
@@ -33,6 +48,7 @@ const defaultNews = [
 let currentCategory = "الكل";
 let searchQuery = "";
 let newsList = loadLocalNews();
+let siteSettings = loadLocalSettings();
 let isUnlocked = false;
 let editingId = null;
 
@@ -41,6 +57,32 @@ const refreshAutoBtn = document.getElementById("refreshAutoBtn");
 const lockAdminBtn = document.getElementById("lockAdminBtn");
 const adminPanel = document.getElementById("adminPanel");
 const autoSyncStatus = document.getElementById("autoSyncStatus");
+
+const siteTitleText = document.getElementById("siteTitleText");
+const siteSubtitleText = document.getElementById("siteSubtitleText");
+const defaultLogoSvg = document.getElementById("defaultLogoSvg");
+const customLogoImg = document.getElementById("customLogoImg");
+const footerAboutText = document.getElementById("footerAboutText");
+const footerOverviewText = document.getElementById("footerOverviewText");
+const footerHandleText = document.getElementById("footerHandleText");
+const footerOrgText = document.getElementById("footerOrgText");
+const footerWhatsappLink = document.getElementById("footerWhatsappLink");
+const footerCopyrightText = document.getElementById("footerCopyrightText");
+
+const siteSettingsForm = document.getElementById("siteSettingsForm");
+const cfgSiteNameInput = document.getElementById("cfgSiteName");
+const cfgSubtitleInput = document.getElementById("cfgSubtitle");
+const cfgLogoUrlInput = document.getElementById("cfgLogoUrl");
+const cfgAccentColorInput = document.getElementById("cfgAccentColor");
+const accentHexLabel = document.getElementById("accentHexLabel");
+const cfgAboutTextInput = document.getElementById("cfgAboutText");
+const cfgOverviewTextInput = document.getElementById("cfgOverviewText");
+const cfgHandleTextInput = document.getElementById("cfgHandleText");
+const cfgOrgTextInput = document.getElementById("cfgOrgText");
+const cfgWhatsappUrlInput = document.getElementById("cfgWhatsappUrl");
+const cfgWhatsappLabelInput = document.getElementById("cfgWhatsappLabel");
+const resetSettingsBtn = document.getElementById("resetSettingsBtn");
+const settingsStatus = document.getElementById("settingsStatus");
 
 const newsForm = document.getElementById("newsForm");
 const newsFormTitle = document.getElementById("newsFormTitle");
@@ -74,6 +116,96 @@ const modalDate = document.getElementById("modalDate");
 const modalTitle = document.getElementById("modalTitle");
 const modalBody = document.getElementById("modalBody");
 const modalLink = document.getElementById("modalLink");
+
+function loadLocalSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && typeof parsed === "object") {
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    }
+  } catch {}
+  return { ...DEFAULT_SETTINGS };
+}
+
+function saveLocalSettings(cfg) {
+  try {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cfg));
+  } catch {}
+}
+
+function applySiteSettings(cfg) {
+  const safeCfg = { ...DEFAULT_SETTINGS, ...(cfg || {}) };
+  siteSettings = safeCfg;
+
+  siteTitleText.textContent = safeCfg.siteName || DEFAULT_SETTINGS.siteName;
+  siteSubtitleText.textContent = safeCfg.subtitle || DEFAULT_SETTINGS.subtitle;
+  document.title = `${safeCfg.siteName || DEFAULT_SETTINGS.siteName} | ${safeCfg.subtitle || DEFAULT_SETTINGS.subtitle}`;
+
+  const hex = /^#[0-9a-fA-F]{6}$/.test(safeCfg.accentColor || "")
+    ? safeCfg.accentColor
+    : DEFAULT_SETTINGS.accentColor;
+  document.documentElement.style.setProperty("--accent", hex);
+  document.documentElement.style.setProperty("--accent-dark", hex);
+
+  if (isSafeUrl(safeCfg.logoUrl)) {
+    customLogoImg.src = safeCfg.logoUrl.trim();
+    customLogoImg.classList.remove("hidden");
+    defaultLogoSvg.classList.add("hidden");
+  } else {
+    customLogoImg.src = "";
+    customLogoImg.classList.add("hidden");
+    defaultLogoSvg.classList.remove("hidden");
+  }
+
+  footerAboutText.textContent = safeCfg.aboutText || DEFAULT_SETTINGS.aboutText;
+  footerOverviewText.textContent = safeCfg.overviewText || DEFAULT_SETTINGS.overviewText;
+  footerHandleText.textContent = safeCfg.handleText || DEFAULT_SETTINGS.handleText;
+  footerOrgText.textContent = safeCfg.orgText || DEFAULT_SETTINGS.orgText;
+  footerWhatsappLink.textContent = safeCfg.whatsappLabel || DEFAULT_SETTINGS.whatsappLabel;
+  footerWhatsappLink.href = isSafeUrl(safeCfg.whatsappUrl) ? safeCfg.whatsappUrl.trim() : DEFAULT_SETTINGS.whatsappUrl;
+  footerCopyrightText.textContent = `© 2026 ${safeCfg.siteName || DEFAULT_SETTINGS.siteName} | ${safeCfg.subtitle || DEFAULT_SETTINGS.subtitle} — جميع الحقوق محفوظة`;
+
+  populateSettingsForm(safeCfg);
+}
+
+function populateSettingsForm(cfg) {
+  cfgSiteNameInput.value = cfg.siteName || "";
+  cfgSubtitleInput.value = cfg.subtitle || "";
+  cfgLogoUrlInput.value = cfg.logoUrl || "";
+  const hex = /^#[0-9a-fA-F]{6}$/.test(cfg.accentColor || "") ? cfg.accentColor : "#0284c7";
+  cfgAccentColorInput.value = hex;
+  accentHexLabel.textContent = hex;
+  cfgAboutTextInput.value = cfg.aboutText || "";
+  cfgOverviewTextInput.value = cfg.overviewText || "";
+  cfgHandleTextInput.value = cfg.handleText || "";
+  cfgOrgTextInput.value = cfg.orgText || "";
+  cfgWhatsappUrlInput.value = cfg.whatsappUrl || "";
+  cfgWhatsappLabelInput.value = cfg.whatsappLabel || "";
+}
+
+async function syncSettingsFromCloud() {
+  try {
+    const res = await fetch(SETTINGS_DB_URL);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === "object") {
+      const merged = { ...DEFAULT_SETTINGS, ...data };
+      saveLocalSettings(merged);
+      applySiteSettings(merged);
+    }
+  } catch {}
+}
+
+async function saveSettingsToCloud(cfg) {
+  try {
+    await fetch(SETTINGS_DB_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cfg)
+    });
+  } catch {}
+}
 
 function loadLocalNews() {
   try {
@@ -285,7 +417,7 @@ function renderFeed() {
         <div class="news-body-wrap">
           <div class="news-meta">
             <span class="news-cat">${escapeHtml(item.category || "دولية")}</span>
-            <span class="news-source">${escapeHtml(item.source || "كيان نيوز")}</span>
+            <span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span>
             <span>${escapeHtml(item.createdAt || "")}</span>
           </div>
           <h3>${escapeHtml(item.title)}</h3>
@@ -304,7 +436,7 @@ function startEditingNews(id) {
   editingId = target.id;
   editNewsIdInput.value = target.id;
   newsTitleInput.value = target.title || "";
-  newsSourceInput.value = target.source || "كيان نيوز";
+  newsSourceInput.value = target.source || siteSettings.siteName;
   newsImageInput.value = target.image || "";
   newsCategorySelect.value = target.category || "محلية";
   isBreakingCheckbox.checked = Boolean(target.breaking);
@@ -412,6 +544,41 @@ refreshAutoBtn.addEventListener("click", () => {
 
 cancelEditBtn.addEventListener("click", resetNewsForm);
 
+cfgAccentColorInput.addEventListener("input", (e) => {
+  accentHexLabel.textContent = e.target.value;
+});
+
+siteSettingsForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!isUnlocked) return;
+
+  const updatedCfg = {
+    siteName: cfgSiteNameInput.value.trim() || DEFAULT_SETTINGS.siteName,
+    subtitle: cfgSubtitleInput.value.trim() || DEFAULT_SETTINGS.subtitle,
+    logoUrl: isSafeUrl(cfgLogoUrlInput.value.trim()) ? cfgLogoUrlInput.value.trim() : "",
+    accentColor: cfgAccentColorInput.value || DEFAULT_SETTINGS.accentColor,
+    aboutText: cfgAboutTextInput.value.trim() || DEFAULT_SETTINGS.aboutText,
+    overviewText: cfgOverviewTextInput.value.trim() || DEFAULT_SETTINGS.overviewText,
+    handleText: cfgHandleTextInput.value.trim() || DEFAULT_SETTINGS.handleText,
+    orgText: cfgOrgTextInput.value.trim() || DEFAULT_SETTINGS.orgText,
+    whatsappUrl: isSafeUrl(cfgWhatsappUrlInput.value.trim()) ? cfgWhatsappUrlInput.value.trim() : DEFAULT_SETTINGS.whatsappUrl,
+    whatsappLabel: cfgWhatsappLabelInput.value.trim() || DEFAULT_SETTINGS.whatsappLabel
+  };
+
+  applySiteSettings(updatedCfg);
+  saveLocalSettings(updatedCfg);
+  await saveSettingsToCloud(updatedCfg);
+  settingsStatus.textContent = "تم حفظ إعدادات الموقع وتحديث الشكل والتواصل بنجاح.";
+});
+
+resetSettingsBtn.addEventListener("click", async () => {
+  if (!isUnlocked) return;
+  applySiteSettings(DEFAULT_SETTINGS);
+  saveLocalSettings(DEFAULT_SETTINGS);
+  await saveSettingsToCloud(DEFAULT_SETTINGS);
+  settingsStatus.textContent = "تمت استعادة الإعدادات الافتراضية.";
+});
+
 categoryNav.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-cat]");
   if (!btn) return;
@@ -431,7 +598,7 @@ newsForm.addEventListener("submit", async (e) => {
   if (!isUnlocked) return;
 
   const title = newsTitleInput.value.trim();
-  const source = newsSourceInput.value.trim() || "كيان نيوز";
+  const source = newsSourceInput.value.trim() || siteSettings.siteName;
   const image = newsImageInput.value.trim();
   const category = newsCategorySelect.value;
   const breaking = isBreakingCheckbox.checked;
@@ -556,7 +723,9 @@ articleModal.addEventListener("click", (e) => {
   if (e.target === articleModal) closeArticleModal();
 });
 
+applySiteSettings(siteSettings);
 renderTicker();
 renderFeed();
+syncSettingsFromCloud();
 syncFromCloud();
 runAutomaticFeeds(false);
