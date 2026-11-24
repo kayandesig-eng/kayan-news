@@ -17,7 +17,9 @@
 
   <div class="ticker">
     <span class="ticker-badge">عاجل</span>
-    <marquee id="breakingTicker" behavior="scroll" direction="right">مرحباً بكم في منصة كيان نيوز الإخبارية</marquee>
+    <div class="ticker-track">
+      <div id="breakingTicker" class="ticker-content">مرحباً بكم في منصة كيان نيوز الإخبارية</div>
+    </div>
   </div>
 
   <nav class="categories" id="categoryNav">
@@ -31,9 +33,15 @@
   </nav>
 
   <section id="adminPanel" class="admin-panel hidden">
-    <h2>إضافة خبر جديد</h2>
-    <form id="newsForm">
+    <div class="admin-header">
+      <h2>لوحة إدارة كيان نيوز</h2>
+      <button id="lockAdminBtn" class="btn-secondary" type="button">قفل اللوحة</button>
+    </div>
+
+    <form id="newsForm" class="admin-box">
+      <h3>نشر خبر يدوي</h3>
       <input type="text" id="newsTitle" placeholder="عنوان الخبر" required />
+      <input type="url" id="newsImage" placeholder="رابط صورة الخبر (اختياري)" />
       <select id="newsCategory">
         <option value="محلية">محلية</option>
         <option value="عربية">عربية</option>
@@ -43,14 +51,33 @@
         <option value="منوعات">منوعات</option>
       </select>
       <label class="check-row">
-        <input type="checkbox" id="isBreaking" /> خبر عاجل
+        <input type="checkbox" id="isBreaking" /> تثبيت في شريط العاجل
       </label>
-      <textarea id="newsBody" rows="3" placeholder="نص الخبر..." required></textarea>
-      <button type="submit" class="btn-primary">نشر الخبر</button>
+      <textarea id="newsBody" rows="3" placeholder="تفاصيل الخبر..." required></textarea>
+      <button type="submit" class="btn-primary">نشر الخبر الآن</button>
+    </form>
+
+    <form id="rssForm" class="admin-box">
+      <h3>جلب تلقائي من مصدر RSS</h3>
+      <input type="url" id="rssUrl" placeholder="أدخل رابط RSS (مثال: https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9)" required />
+      <select id="rssCategory">
+        <option value="عربية">عربية</option>
+        <option value="دولية">دولية</option>
+        <option value="سياسة">سياسة</option>
+        <option value="رياضة">رياضة</option>
+        <option value="محلية">محلية</option>
+        <option value="منوعات">منوعات</option>
+      </select>
+      <button type="submit" id="fetchRssBtn" class="btn-rss">سحب ونشر آخر الأخبار</button>
+      <small id="rssStatus" class="status-msg"></small>
     </form>
   </section>
 
   <main id="newsFeed" class="news-grid"></main>
+
+  <footer class="footer">
+    <p>© 2026 كيان نيوز | KAYAN NEWS - جميع الحقوق محفوظة</p>
+  </footer>
 
   <script type="module" src="script.js"></script>
 </body>
