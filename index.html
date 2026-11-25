@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
+  <meta property="og:site_name" content="كيان نيوز | KAYAN NEWS" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="كيان نيوز | KAYAN NEWS — تغطية سياسية ورياضية وثقافية" />
+  <meta property="og:description" content="منصة كيان نيوز الإخبارية الرسمية: متابعة مستمرة للأخبار السياسية والرياضية والثقافية على مدار الساعة." />
+  <meta property="og:url" content="https://kayandesig-eng.github.io/kayan-news/" />
+  <meta property="og:image" content="https://kayandesig-eng.github.io/kayan-news/og-cover.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="كيان نيوز | KAYAN NEWS" />
+  <meta name="twitter:description" content="منصة كيان نيوز الإخبارية الرسمية على مدار الساعة." />
   <title>كيان نيوز | KAYAN NEWS</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -67,7 +76,6 @@
     </div>
   </div>
 
-  <!-- شريط المتابعة والاشتراك وإرسال آخر الأخبار -->
   <section class="subscription-strip" aria-label="المتابعة والاشتراك">
     <div class="sub-info">
       <span class="sub-badge">🔔 خدمة المشتركين</span>
@@ -80,7 +88,6 @@
     </div>
   </section>
 
-  <!-- النوافذ الثلاث الرئيسية -->
   <nav class="main-windows" id="mainWindowsNav" aria-label="النوافذ الرئيسية">
     <button type="button" class="win-tab win-politics active" data-win="politics">
       <span class="win-icon">🏛️</span>
@@ -99,10 +106,8 @@
     </button>
   </nav>
 
-  <!-- الأقسام الفرعية للنافذة النشطة (السياسة أو الرياضة) -->
   <div id="subCategoriesBar" class="sub-categories-bar"></div>
 
-  <!-- بانر تعريف النافذة والقسم الفرعي الحالي -->
   <section id="windowBanner" class="window-banner banner-politics">
     <div class="banner-inner">
       <span id="bannerIcon" class="banner-icon">🏛️</span>
@@ -222,7 +227,6 @@
 
   <main id="newsFeed" class="news-grid"></main>
 
-  <!-- نافذة قراءة الخبر الكاملة + الإعجاب والتعليقات -->
   <div id="articleModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <button id="closeModalBtn" class="modal-close" type="button">✕</button>
@@ -260,7 +264,6 @@
     </div>
   </div>
 
-  <!-- الفوتر الرسمي الفخم مع وسائل التواصل والإعلانات -->
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-col" id="about">
