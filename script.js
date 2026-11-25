@@ -642,3 +642,206 @@ renderFeed();
 syncSettingsFromCloud();
 syncFromCloud();
 runAutomaticFeeds(false);
+
+const SUBS_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/subscribers.json";
+const LIKES_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/likes.json";
+const COMMENTS_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/comments.json";
+
+let cloudSubsList = [];
+let cloudLikesMap = {};
+let cloudCommentsMap = {};
+
+function ensureSubsAdminBox() {
+  if (!adminPanel || el("subsAdminBox")) return;
+  const box = document.createElement("div");
+  box.id = "subsAdminBox";
+  box.className = "admin-box";
+  box.innerHTML = `<h3>قائمة وعدد المشتركين والمتابعين (<span id="subsCountBadge">0</span>)</h3><div id="subsListPreview" style="font-size:0.85rem;color:#334155;max-height:140px;overflow-y:auto;">جاري تحميل المشتركين...</div>`;
+  adminPanel.appendChild(box);
+}
+
+function renderSubsAdminBox() {
+  ensureSubsAdminBox();
+  const cntEl = el("subsCountBadge");
+  const listEl = el("subsListPreview");
+  if (cntEl) cntEl.textContent = String(cloudSubsList.length);
+  if (listEl) {
+    listEl.innerHTML = cloudSubsList.length
+      ? cloudSubsList.map((s) => `<div style="padding:4px 0;border-bottom:1px solid #e2e8f0;">• ${escapeHtml(s.contact || "متابع مجهول")} — <small>${escapeHtml(s.date || "")}</small></div>`).join("")
+      : "لا يوجد مشتركون مسجلون في السحابة بعد.";
+  }
+}
+
+saveItemToCloud = async function (item) {
+  try {
+    await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(item.id))}.json`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item)
+    });
+  } catch {}
+};
+
+saveSettingsToCloud = async function (cfg) {
+  try {
+    await fetch(SETTINGS_DB_URL, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cfg)
+    });
+  } catch {}
+};
+
+syncFromCloud = async function () {
+  try {
+    const res = await fetch(`${DB_URL}?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data) return;
+    const cloudList = Array.isArray(data) ? data.filter(Boolean) : Object.entries(data).map(([k, v]) => ({ id: k, ...v }));
+    if (cloudList.length) {
+      const map = new Map();
+      [...cloudList, ...newsList].forEach((i) => { if (i && i.id) map.set(String(i.id), i); });
+      newsList = Array.from(map.values()).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 180);
+      saveLocalNews(newsList);
+      renderTicker();
+      renderFeed();
+    }
+  } catch {}
+};
+
+syncSettingsFromCloud = async function () {
+  try {
+    const res = await fetch(`${SETTINGS_DB_URL}?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === "object") {
+      const m = { ...DEFAULT_SETTINGS, ...data };
+      saveLocalSettings(m);
+      applySiteSettings(m);
+    }
+  } catch {}
+};
+
+async function syncSubsFromCloud() {
+  try {
+    const res = await fetch(`${SUBS_DB_URL}?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    cloudSubsList = data && typeof data === "object" ? Object.values(data) : [];
+    renderSubsAdminBox();
+  } catch {}
+}
+
+async function syncLikesFromCloud() {
+  try {
+    const res = await fetch(`${LIKES_DB_URL}?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    cloudLikesMap = data && typeof data === "object" ? data : {};
+    renderFeed();
+    if (currentModalNewsId) renderModalEngagement(currentModalNewsId);
+  } catch {}
+}
+
+async function syncCommentsFromCloud() {
+  try {
+    const res = await fetch(`${COMMENTS_DB_URL}?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    cloudCommentsMap = data && typeof data === "object" ? data : {};
+    renderFeed();
+    if (currentModalNewsId) renderModalEngagement(currentModalNewsId);
+  } catch {}
+}
+
+getLikesCount = function (id) {
+  const idStr = String(id);
+  const base = Number(cloudLikesMap[idStr] || engageState.extraLikes[idStr] || 0);
+  const mine = engageState.likedIds.includes(idStr) ? 1 : 0;
+  return Math.max(base, mine);
+};
+
+getCommentsList = function (id) {
+  const idStr = String(id);
+  const cloudArr = Array.isArray(cloudCommentsMap[idStr]) ? cloudCommentsMap[idStr] : [];
+  const localArr = Array.isArray(engageState.comments[idStr]) ? engageState.comments[idStr] : [];
+  const seen = new Set();
+  return [...cloudArr, ...localArr].filter((c) => {
+    const key = `${c.author || ""}|${c.text || ""}|${c.date || ""}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+toggleLike = async function (idStr) {
+  const idx = engageState.likedIds.indexOf(idStr);
+  const currentlyLiked = idx >= 0;
+  const currentTotal = getLikesCount(idStr);
+  if (currentlyLiked) {
+    engageState.likedIds.splice(idx, 1);
+    cloudLikesMap[idStr] = Math.max(0, currentTotal - 1);
+  } else {
+    engageState.likedIds.push(idStr);
+    cloudLikesMap[idStr] = currentTotal + 1;
+  }
+  saveEngageState(engageState);
+  renderFeed();
+  if (currentModalNewsId === idStr) renderModalEngagement(idStr);
+  try {
+    await fetch(`${LIKES_DB_URL.replace(".json", "")}/${encodeURIComponent(idStr)}.json`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cloudLikesMap[idStr])
+    });
+  } catch {}
+};
+
+subscribeBtn.addEventListener("click", async () => {
+  const contact = subscriberContactInput.value.trim() || subState.contact || "متابع جديد";
+  if ("Notification" in window && Notification.permission === "default") {
+    try { await Notification.requestPermission(); } catch {}
+  }
+  subState = { subscribed: true, contact };
+  saveSubState(subState);
+  renderSubStatus();
+  const entry = { contact, date: new Date().toLocaleString("ar-EG") };
+  cloudSubsList.unshift(entry);
+  renderSubsAdminBox();
+  try {
+    await fetch(SUBS_DB_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry)
+    });
+  } catch {}
+  alert("تم اشتراكك ومتابعتك في منصة كيان نيوز (KAYAN NEWS) بنجاح!");
+});
+
+el("commentForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentModalNewsId) return;
+  const txt = el("commentTextInput").value.trim();
+  if (!txt) return;
+  const author = el("commentAuthorInput").value.trim() || "قارئ كيان";
+  const newComment = { author, text: txt, date: new Date().toLocaleString("ar-EG") };
+  const arr = getCommentsList(currentModalNewsId);
+  arr.unshift(newComment);
+  engageState.comments[currentModalNewsId] = arr;
+  cloudCommentsMap[currentModalNewsId] = arr;
+  saveEngageState(engageState);
+  el("commentTextInput").value = "";
+  renderCommentsList(currentModalNewsId);
+  renderFeed();
+  try {
+    await fetch(`${COMMENTS_DB_URL.replace(".json", "")}/${encodeURIComponent(currentModalNewsId)}.json`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(arr)
+    });
+  } catch {}
+});
+
+ensureSubsAdminBox();
+syncSettingsFromCloud();
+syncFromCloud();
+syncSubsFromCloud();
+syncLikesFromCloud();
+syncCommentsFromCloud();
+setInterval(() => {
+  syncSettingsFromCloud();
+  syncFromCloud();
+  syncLikesFromCloud();
+  syncCommentsFromCloud();
+}, 30000);
