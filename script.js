@@ -1,13 +1,14 @@
 const DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/news.json";
 const SETTINGS_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/settings.json";
-const STORAGE_KEY = "kayan_news_items_v3";
-const SETTINGS_STORAGE_KEY = "kayan_news_settings_v1";
-const AUTO_FETCH_KEY = "kayan_news_last_auto_fetch_v3";
+const STORAGE_KEY = "kayan_news_items_v4";
+const SETTINGS_STORAGE_KEY = "kayan_news_settings_v2";
+const AUTO_FETCH_KEY = "kayan_news_last_auto_fetch_v4";
 const ADMIN_PASSCODE = "kayan2026";
+const KAYAN_TAG = "خاص لموقع كيان نيوز KAYAN NEWS";
 
 const DEFAULT_SETTINGS = {
   siteName: "كيان نيوز",
-  subtitle: "KAYAN NEWS",
+  subtitle: "KAYAN NEWS • NETWORK",
   logoUrl: "",
   accentColor: "#0284c7",
   aboutText: "منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.",
@@ -57,7 +58,6 @@ const refreshAutoBtn = document.getElementById("refreshAutoBtn");
 const lockAdminBtn = document.getElementById("lockAdminBtn");
 const adminPanel = document.getElementById("adminPanel");
 const autoSyncStatus = document.getElementById("autoSyncStatus");
-
 const siteTitleText = document.getElementById("siteTitleText");
 const siteSubtitleText = document.getElementById("siteSubtitleText");
 const defaultLogoSvg = document.getElementById("defaultLogoSvg");
@@ -68,10 +68,11 @@ const footerHandleText = document.getElementById("footerHandleText");
 const footerOrgText = document.getElementById("footerOrgText");
 const footerWhatsappLink = document.getElementById("footerWhatsappLink");
 const footerCopyrightText = document.getElementById("footerCopyrightText");
-
 const siteSettingsForm = document.getElementById("siteSettingsForm");
 const cfgSiteNameInput = document.getElementById("cfgSiteName");
 const cfgSubtitleInput = document.getElementById("cfgSubtitle");
+const cfgLogoFileInput = document.getElementById("cfgLogoFile");
+const clearLogoBtn = document.getElementById("clearLogoBtn");
 const cfgLogoUrlInput = document.getElementById("cfgLogoUrl");
 const cfgAccentColorInput = document.getElementById("cfgAccentColor");
 const accentHexLabel = document.getElementById("accentHexLabel");
@@ -83,32 +84,33 @@ const cfgWhatsappUrlInput = document.getElementById("cfgWhatsappUrl");
 const cfgWhatsappLabelInput = document.getElementById("cfgWhatsappLabel");
 const resetSettingsBtn = document.getElementById("resetSettingsBtn");
 const settingsStatus = document.getElementById("settingsStatus");
-
 const newsForm = document.getElementById("newsForm");
 const newsFormTitle = document.getElementById("newsFormTitle");
 const editNewsIdInput = document.getElementById("editNewsId");
 const newsTitleInput = document.getElementById("newsTitle");
 const newsSourceInput = document.getElementById("newsSource");
+const newsImageFileInput = document.getElementById("newsImageFile");
+const clearNewsImgBtn = document.getElementById("clearNewsImgBtn");
+const newsImgPreviewWrap = document.getElementById("newsImgPreviewWrap");
+const newsImgPreview = document.getElementById("newsImgPreview");
 const newsImageInput = document.getElementById("newsImage");
 const newsCategorySelect = document.getElementById("newsCategory");
 const isBreakingCheckbox = document.getElementById("isBreaking");
 const newsBodyInput = document.getElementById("newsBody");
 const submitNewsBtn = document.getElementById("submitNewsBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
-
 const rssForm = document.getElementById("rssForm");
 const rssUrlInput = document.getElementById("rssUrl");
 const rssSourceNameInput = document.getElementById("rssSourceName");
 const rssCategorySelect = document.getElementById("rssCategory");
 const rssStatus = document.getElementById("rssStatus");
-
 const newsFeed = document.getElementById("newsFeed");
 const categoryNav = document.getElementById("categoryNav");
 const searchInput = document.getElementById("searchInput");
 const breakingTicker = document.getElementById("breakingTicker");
-
 const articleModal = document.getElementById("articleModal");
 const closeModalBtn = document.getElementById("closeModalBtn");
+const modalImgWrap = document.getElementById("modalImgWrap");
 const modalImg = document.getElementById("modalImg");
 const modalCat = document.getElementById("modalCat");
 const modalSource = document.getElementById("modalSource");
@@ -117,71 +119,99 @@ const modalTitle = document.getElementById("modalTitle");
 const modalBody = document.getElementById("modalBody");
 const modalLink = document.getElementById("modalLink");
 
+function isSafeImageSrc(src) {
+  if (!src || typeof src !== "string") return false;
+  const trimmed = src.trim();
+  if (/^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) return true;
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function isSafeExternalUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function compressImageFile(file, maxWidth = 820, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function updateNewsPreview(src) {
+  const valid = isSafeImageSrc(src);
+  newsImgPreview.src = valid ? src : "";
+  newsImgPreviewWrap.classList.toggle("hidden", !valid);
+  clearNewsImgBtn.classList.toggle("hidden", !valid);
+}
+
 function loadLocalSettings() {
   try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && typeof parsed === "object") {
-      return { ...DEFAULT_SETTINGS, ...parsed };
-    }
+    const parsed = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null");
+    if (parsed && typeof parsed === "object") return { ...DEFAULT_SETTINGS, ...parsed };
   } catch {}
   return { ...DEFAULT_SETTINGS };
 }
 
 function saveLocalSettings(cfg) {
-  try {
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cfg));
-  } catch {}
+  try { localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cfg)); } catch {}
 }
 
 function applySiteSettings(cfg) {
   const safeCfg = { ...DEFAULT_SETTINGS, ...(cfg || {}) };
   siteSettings = safeCfg;
-
   siteTitleText.textContent = safeCfg.siteName || DEFAULT_SETTINGS.siteName;
   siteSubtitleText.textContent = safeCfg.subtitle || DEFAULT_SETTINGS.subtitle;
-  document.title = `${safeCfg.siteName || DEFAULT_SETTINGS.siteName} | ${safeCfg.subtitle || DEFAULT_SETTINGS.subtitle}`;
-
-  const hex = /^#[0-9a-fA-F]{6}$/.test(safeCfg.accentColor || "")
-    ? safeCfg.accentColor
-    : DEFAULT_SETTINGS.accentColor;
+  document.title = `${siteTitleText.textContent} | ${siteSubtitleText.textContent}`;
+  const hex = /^#[0-9a-fA-F]{6}$/.test(safeCfg.accentColor || "") ? safeCfg.accentColor : DEFAULT_SETTINGS.accentColor;
   document.documentElement.style.setProperty("--accent", hex);
   document.documentElement.style.setProperty("--accent-dark", hex);
-
-  if (isSafeUrl(safeCfg.logoUrl)) {
-    customLogoImg.src = safeCfg.logoUrl.trim();
-    customLogoImg.classList.remove("hidden");
-    defaultLogoSvg.classList.add("hidden");
-  } else {
-    customLogoImg.src = "";
-    customLogoImg.classList.add("hidden");
-    defaultLogoSvg.classList.remove("hidden");
-  }
-
+  const hasCustomLogo = isSafeImageSrc(safeCfg.logoUrl);
+  customLogoImg.src = hasCustomLogo ? safeCfg.logoUrl.trim() : "";
+  customLogoImg.classList.toggle("hidden", !hasCustomLogo);
+  defaultLogoSvg.classList.toggle("hidden", hasCustomLogo);
   footerAboutText.textContent = safeCfg.aboutText || DEFAULT_SETTINGS.aboutText;
   footerOverviewText.textContent = safeCfg.overviewText || DEFAULT_SETTINGS.overviewText;
   footerHandleText.textContent = safeCfg.handleText || DEFAULT_SETTINGS.handleText;
   footerOrgText.textContent = safeCfg.orgText || DEFAULT_SETTINGS.orgText;
   footerWhatsappLink.textContent = safeCfg.whatsappLabel || DEFAULT_SETTINGS.whatsappLabel;
-  footerWhatsappLink.href = isSafeUrl(safeCfg.whatsappUrl) ? safeCfg.whatsappUrl.trim() : DEFAULT_SETTINGS.whatsappUrl;
-  footerCopyrightText.textContent = `© 2026 ${safeCfg.siteName || DEFAULT_SETTINGS.siteName} | ${safeCfg.subtitle || DEFAULT_SETTINGS.subtitle} — جميع الحقوق محفوظة`;
-
-  populateSettingsForm(safeCfg);
-}
-
-function populateSettingsForm(cfg) {
-  cfgSiteNameInput.value = cfg.siteName || "";
-  cfgSubtitleInput.value = cfg.subtitle || "";
-  cfgLogoUrlInput.value = cfg.logoUrl || "";
-  const hex = /^#[0-9a-fA-F]{6}$/.test(cfg.accentColor || "") ? cfg.accentColor : "#0284c7";
+  footerWhatsappLink.href = isSafeExternalUrl(safeCfg.whatsappUrl) ? safeCfg.whatsappUrl.trim() : DEFAULT_SETTINGS.whatsappUrl;
+  footerCopyrightText.textContent = `© 2026 ${siteTitleText.textContent} | ${siteSubtitleText.textContent} — جميع الحقوق محفوظة`;
+  cfgSiteNameInput.value = safeCfg.siteName || "";
+  cfgSubtitleInput.value = safeCfg.subtitle || "";
+  cfgLogoUrlInput.value = safeCfg.logoUrl || "";
   cfgAccentColorInput.value = hex;
   accentHexLabel.textContent = hex;
-  cfgAboutTextInput.value = cfg.aboutText || "";
-  cfgOverviewTextInput.value = cfg.overviewText || "";
-  cfgHandleTextInput.value = cfg.handleText || "";
-  cfgOrgTextInput.value = cfg.orgText || "";
-  cfgWhatsappUrlInput.value = cfg.whatsappUrl || "";
-  cfgWhatsappLabelInput.value = cfg.whatsappLabel || "";
+  cfgAboutTextInput.value = safeCfg.aboutText || "";
+  cfgOverviewTextInput.value = safeCfg.overviewText || "";
+  cfgHandleTextInput.value = safeCfg.handleText || "";
+  cfgOrgTextInput.value = safeCfg.orgText || "";
+  cfgWhatsappUrlInput.value = safeCfg.whatsappUrl || "";
+  cfgWhatsappLabelInput.value = safeCfg.whatsappLabel || "";
 }
 
 async function syncSettingsFromCloud() {
@@ -209,22 +239,18 @@ async function saveSettingsToCloud(cfg) {
 
 function loadLocalNews() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (Array.isArray(parsed) && parsed.length) return parsed;
   } catch {}
   return [...defaultNews];
 }
 
 function saveLocalNews(items) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
 }
 
 function classifyArticle(title, body, sourceName, hintCategory) {
   const text = `${title} ${body} ${sourceName}`.toLowerCase();
-
   const yemenKeywords = ["اليمن", "يمني", "يمنية", "صنعاء", "عدن", "تعز", "مأرب", "حضرموت", "المكلا", "الحديدة", "إب", "ذمار", "شبوة", "لحج", "أبين", "المهرة", "سقطرى", "حجة", "عمران", "صعدة", "البيضاء", "الجوف", "الضالع", "ريمة"];
   const arabKeywords = ["السعودية", "مصر", "الإمارات", "قطر", "الكويت", "البحرين", "عمان", "الأردن", "لبنان", "سوريا", "العراق", "فلسطين", "غزة", "السودان", "ليبيا", "تونس", "الجزائر", "المغرب", "موريتانيا", "الصومال", "جيبوتي", "جزر القمر", "عربي", "عربية", "الخليج"];
   const arabSportKeywords = ["دوري روشن", "الدوري السعودي", "الدوري المصري", "الزمالك", "الأهلي", "الهلال", "النصر", "الاتحاد", "كأس العرب", "المنتخب السعودي", "منتخب مصر", "منتخب المغرب", "منتخب قطر", "منتخب الجزائر", "البطولة العربية", "دوري أبطال أفريقيا", "الدوري الإماراتي", "الدوري القطري"];
@@ -239,23 +265,17 @@ function classifyArticle(title, body, sourceName, hintCategory) {
   if (isYemen) return "محلية";
   if (isSport && (isArab || isArabSport)) return "رياضة عربية";
   if (isSport) return "رياضة دولية";
-  if (hintCategory === "رياضة محلية" || hintCategory === "رياضة عربية" || hintCategory === "رياضة دولية") {
-    return hintCategory;
-  }
+  if (hintCategory === "رياضة محلية" || hintCategory === "رياضة عربية" || hintCategory === "رياضة دولية") return hintCategory;
   if (isArab) return "عربية";
   if (hintCategory && hintCategory !== "تلقائي") return hintCategory;
   return "دولية";
 }
 
 function extractImageFromEntry(entry) {
-  if (isSafeUrl(entry.thumbnail)) return entry.thumbnail;
-  if (isSafeUrl(entry.enclosure?.link) && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(entry.enclosure.link)) {
-    return entry.enclosure.link;
-  }
-  const htmlChunk = `${entry.description || ""} ${entry.content || ""}`;
-  const imgMatch = htmlChunk.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (imgMatch && isSafeUrl(imgMatch[1])) return imgMatch[1];
-  return "";
+  if (isSafeImageSrc(entry.thumbnail)) return entry.thumbnail;
+  if (isSafeImageSrc(entry.enclosure?.link) && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(entry.enclosure.link)) return entry.enclosure.link;
+  const imgMatch = `${entry.description || ""} ${entry.content || ""}`.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return imgMatch && isSafeImageSrc(imgMatch[1]) ? imgMatch[1] : "";
 }
 
 async function fetchSingleFeed(feed) {
@@ -269,23 +289,14 @@ async function fetchSingleFeed(feed) {
   return entries.map((entry, idx) => {
     const title = cleanHtmlText(entry.title);
     const body = cleanHtmlText(entry.description || entry.content || "");
-    const link = isSafeUrl(entry.link) ? entry.link : "";
+    const link = isSafeExternalUrl(entry.link) ? entry.link : "";
     const image = extractImageFromEntry(entry);
     const parsedTime = entry.pubDate ? Date.parse(entry.pubDate) : NaN;
     const timestamp = Number.isFinite(parsedTime) ? parsedTime : (Date.now() - idx * 60000);
-    const category = feed.category && feed.category !== "تلقائي"
-      ? feed.category
-      : classifyArticle(title, body, sourceTitle, feed.hint);
-
+    const category = feed.category && feed.category !== "تلقائي" ? feed.category : classifyArticle(title, body, sourceTitle, feed.hint);
     return {
       id: `rss_${btoa(unescape(encodeURIComponent(`${sourceTitle}_${title.slice(0, 40)}_${idx}`))).replace(/[^a-zA-Z0-9]/g, "").slice(0, 24)}`,
-      timestamp,
-      title,
-      source: sourceTitle,
-      category,
-      breaking: false,
-      image,
-      link,
+      timestamp, title, source: sourceTitle, category, breaking: false, image, link,
       body: body || "اضغط لقراءة التفاصيل الكاملة للخبر.",
       createdAt: new Date(timestamp).toLocaleString("ar-EG")
     };
@@ -294,16 +305,13 @@ async function fetchSingleFeed(feed) {
 
 async function runAutomaticFeeds(force = false) {
   const lastRun = Number(localStorage.getItem(AUTO_FETCH_KEY) || 0);
-  const fifteenMinutes = 15 * 60 * 1000;
-  if (!force && Date.now() - lastRun < fifteenMinutes && newsList.length > 1) {
+  if (!force && Date.now() - lastRun < 15 * 60 * 1000 && newsList.length > 1) {
     autoSyncStatus.textContent = "الأخبار محدثة";
     return;
   }
-
   autoSyncStatus.textContent = "جاري تحديث الأخبار من المصادر...";
   const existingKeys = new Set(newsList.map((n) => `${n.title.trim()}|${n.source || ""}`));
   const newlyCollected = [];
-
   for (const feed of TRUSTED_FEEDS) {
     try {
       const items = await fetchSingleFeed(feed);
@@ -316,19 +324,13 @@ async function runAutomaticFeeds(force = false) {
       }
     } catch {}
   }
-
   if (newlyCollected.length) {
-    newsList = [...newlyCollected, ...newsList];
-    newsList.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
-    newsList = newsList.slice(0, 120);
+    newsList = [...newlyCollected, ...newsList].sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 120);
     saveLocalNews(newsList);
     renderTicker();
     renderFeed();
-    for (const item of newlyCollected.slice(0, 20)) {
-      await saveItemToCloud(item);
-    }
+    for (const item of newlyCollected.slice(0, 20)) await saveItemToCloud(item);
   }
-
   localStorage.setItem(AUTO_FETCH_KEY, String(Date.now()));
   autoSyncStatus.textContent = `آخر تحديث: ${new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`;
 }
@@ -339,19 +341,11 @@ async function syncFromCloud() {
     if (!res.ok) return;
     const data = await res.json();
     if (!data) return;
-
-    const cloudList = Array.isArray(data)
-      ? data.filter(Boolean)
-      : Object.entries(data).map(([key, val]) => ({ id: key, ...val }));
-
+    const cloudList = Array.isArray(data) ? data.filter(Boolean) : Object.entries(data).map(([key, val]) => ({ id: key, ...val }));
     if (cloudList.length) {
       const mergedMap = new Map();
-      [...cloudList, ...newsList].forEach((item) => {
-        if (item && item.id) mergedMap.set(String(item.id), item);
-      });
-      newsList = Array.from(mergedMap.values())
-        .sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0))
-        .slice(0, 120);
+      [...cloudList, ...newsList].forEach((item) => { if (item && item.id) mergedMap.set(String(item.id), item); });
+      newsList = Array.from(mergedMap.values()).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 120);
       saveLocalNews(newsList);
       renderTicker();
       renderFeed();
@@ -361,19 +355,16 @@ async function syncFromCloud() {
 
 async function saveItemToCloud(item) {
   try {
+    if (String(item.image || "").length > 900000) return;
     await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(item.id))}.json`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(item)
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item)
     });
   } catch {}
 }
 
 async function deleteItemFromCloud(id) {
   try {
-    await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(id))}.json`, {
-      method: "DELETE"
-    });
+    await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(id))}.json`, { method: "DELETE" });
   } catch {}
 }
 
@@ -388,10 +379,7 @@ function renderFeed() {
   const q = searchQuery.trim().toLowerCase();
   const filtered = newsList.filter((item) => {
     const matchesCat = currentCategory === "الكل" || item.category === currentCategory;
-    const matchesSearch = !q ||
-      String(item.title || "").toLowerCase().includes(q) ||
-      String(item.body || "").toLowerCase().includes(q) ||
-      String(item.source || "").toLowerCase().includes(q);
+    const matchesSearch = !q || String(item.title || "").toLowerCase().includes(q) || String(item.body || "").toLowerCase().includes(q) || String(item.source || "").toLowerCase().includes(q);
     return matchesCat && matchesSearch;
   });
 
@@ -401,47 +389,28 @@ function renderFeed() {
   }
 
   newsFeed.innerHTML = filtered.map((item) => {
-    const safeImg = isSafeUrl(item.image)
-      ? `<img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.style.display='none'" />`
+    const imgBlock = isSafeImageSrc(item.image)
+      ? `<div class="news-img-container"><img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.closest('.news-img-container').style.display='none'" /><div class="img-watermark-bar"><span class="wm-icon">🎙️</span><span>${escapeHtml(KAYAN_TAG)}</span></div></div>`
       : "";
     const adminControls = isUnlocked
-      ? `<div class="admin-actions">
-           <button class="btn-edit" data-edit="${escapeAttr(String(item.id))}" type="button">تعديل</button>
-           <button class="btn-delete" data-del="${escapeAttr(String(item.id))}" type="button">حذف</button>
-         </div>`
+      ? `<div class="admin-actions"><button class="btn-edit" data-edit="${escapeAttr(String(item.id))}" type="button">تعديل</button><button class="btn-delete" data-del="${escapeAttr(String(item.id))}" type="button">حذف</button></div>`
       : "";
-
-    return `
-      <article class="news-card" data-open="${escapeAttr(String(item.id))}">
-        ${safeImg}
-        <div class="news-body-wrap">
-          <div class="news-meta">
-            <span class="news-cat">${escapeHtml(item.category || "دولية")}</span>
-            <span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span>
-            <span>${escapeHtml(item.createdAt || "")}</span>
-          </div>
-          <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.body)}</p>
-          ${adminControls}
-        </div>
-      </article>
-    `;
+    return `<article class="news-card" data-open="${escapeAttr(String(item.id))}">${imgBlock}<div class="news-body-wrap"><div class="news-meta"><span class="news-cat">${escapeHtml(item.category || "دولية")}</span><span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span><span>${escapeHtml(item.createdAt || "")}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><div class="article-signature-box">🎙️ ${escapeHtml(KAYAN_TAG)}</div>${adminControls}</div></article>`;
   }).join("");
 }
 
 function startEditingNews(id) {
   const target = newsList.find((n) => String(n.id) === String(id));
   if (!target) return;
-
   editingId = target.id;
   editNewsIdInput.value = target.id;
   newsTitleInput.value = target.title || "";
   newsSourceInput.value = target.source || siteSettings.siteName;
   newsImageInput.value = target.image || "";
+  updateNewsPreview(target.image || "");
   newsCategorySelect.value = target.category || "محلية";
   isBreakingCheckbox.checked = Boolean(target.breaking);
   newsBodyInput.value = target.body || "";
-
   newsFormTitle.textContent = "تعديل الخبر المحدد";
   submitNewsBtn.textContent = "حفظ التعديلات";
   cancelEditBtn.classList.remove("hidden");
@@ -453,6 +422,8 @@ function resetNewsForm() {
   editingId = null;
   editNewsIdInput.value = "";
   newsForm.reset();
+  newsImageFileInput.value = "";
+  updateNewsPreview("");
   newsFormTitle.textContent = "إضافة خبر جديد";
   submitNewsBtn.textContent = "نشر الخبر";
   cancelEditBtn.classList.add("hidden");
@@ -461,113 +432,88 @@ function resetNewsForm() {
 function openArticleModal(id) {
   const item = newsList.find((n) => String(n.id) === String(id));
   if (!item) return;
-
   modalTitle.textContent = item.title || "";
   modalBody.textContent = item.body || "";
   modalCat.textContent = item.category || "دولية";
   modalSource.textContent = item.source ? `المصدر: ${item.source}` : "";
   modalDate.textContent = item.createdAt || "";
-
-  if (isSafeUrl(item.image)) {
-    modalImg.src = item.image;
-    modalImg.alt = item.title || "";
-    modalImg.classList.remove("hidden");
-  } else {
-    modalImg.src = "";
-    modalImg.classList.add("hidden");
-  }
-
-  if (isSafeUrl(item.link)) {
-    modalLink.href = item.link;
-    modalLink.classList.remove("hidden");
-  } else {
-    modalLink.href = "#";
-    modalLink.classList.add("hidden");
-  }
-
+  const hasImg = isSafeImageSrc(item.image);
+  modalImg.src = hasImg ? item.image : "";
+  modalImg.alt = hasImg ? (item.title || "") : "";
+  modalImgWrap.classList.toggle("hidden", !hasImg);
+  const hasLink = isSafeExternalUrl(item.link);
+  modalLink.href = hasLink ? item.link : "#";
+  modalLink.classList.toggle("hidden", !hasLink);
   articleModal.classList.remove("hidden");
 }
 
-function closeArticleModal() {
-  articleModal.classList.add("hidden");
-}
+function closeArticleModal() { articleModal.classList.add("hidden"); }
+function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t ?? ""; return d.innerHTML; }
+function escapeAttr(t) { return escapeHtml(t).replace(/"/g, "&quot;"); }
+function cleanHtmlText(h) { const d = document.createElement("div"); d.innerHTML = h || ""; return (d.textContent || d.innerText || "").replace(/\s+/g, " ").trim(); }
 
-function isSafeUrl(url) {
-  if (!url || typeof url !== "string") return false;
+newsImageFileInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
   try {
-    const parsed = new URL(url.trim());
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
+    const compressed = await compressImageFile(file, 780, 0.68);
+    newsImageInput.value = compressed;
+    updateNewsPreview(compressed);
+  } catch { alert("تعذر قراءة الصورة المختارة من المعرض."); }
+});
 
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text ?? "";
-  return div.innerHTML;
-}
+newsImageInput.addEventListener("input", (e) => updateNewsPreview(e.target.value.trim()));
+clearNewsImgBtn.addEventListener("click", () => { newsImageFileInput.value = ""; newsImageInput.value = ""; updateNewsPreview(""); });
 
-function escapeAttr(text) {
-  return escapeHtml(text).replace(/"/g, "&quot;");
-}
+cfgLogoFileInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    cfgLogoUrlInput.value = await compressImageFile(file, 220, 0.75);
+    settingsStatus.textContent = "تم اختيار الشعار من المعرض، اضغط «حفظ إعدادات الموقع» لتثبيته.";
+  } catch { settingsStatus.textContent = "تعذر تحميل صورة الشعار."; }
+});
 
-function cleanHtmlText(htmlStr) {
-  const div = document.createElement("div");
-  div.innerHTML = htmlStr || "";
-  return (div.textContent || div.innerText || "").replace(/\s+/g, " ").trim();
-}
+clearLogoBtn.addEventListener("click", () => {
+  cfgLogoFileInput.value = "";
+  cfgLogoUrlInput.value = "";
+  settingsStatus.textContent = "تم تفريغ الشعار المخصص؛ اضغط «حفظ إعدادات الموقع» للعودة للشعار الافتراضي.";
+});
 
 toggleAdminBtn.addEventListener("click", () => {
   if (!isUnlocked) {
     const code = prompt("أدخل رمز الدخول للوحة الإدارة:");
-    if (code !== ADMIN_PASSCODE) {
-      if (code !== null) alert("رمز الدخول غير صحيح.");
-      return;
-    }
+    if (code !== ADMIN_PASSCODE) { if (code !== null) alert("رمز الدخول غير صحيح."); return; }
     isUnlocked = true;
     renderFeed();
   }
   adminPanel.classList.toggle("hidden");
 });
 
-lockAdminBtn.addEventListener("click", () => {
-  isUnlocked = false;
-  resetNewsForm();
-  adminPanel.classList.add("hidden");
-  renderFeed();
-});
-
-refreshAutoBtn.addEventListener("click", () => {
-  runAutomaticFeeds(true);
-});
-
+lockAdminBtn.addEventListener("click", () => { isUnlocked = false; resetNewsForm(); adminPanel.classList.add("hidden"); renderFeed(); });
+refreshAutoBtn.addEventListener("click", () => runAutomaticFeeds(true));
 cancelEditBtn.addEventListener("click", resetNewsForm);
-
-cfgAccentColorInput.addEventListener("input", (e) => {
-  accentHexLabel.textContent = e.target.value;
-});
+cfgAccentColorInput.addEventListener("input", (e) => { accentHexLabel.textContent = e.target.value; });
 
 siteSettingsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!isUnlocked) return;
-
+  const rawLogo = cfgLogoUrlInput.value.trim();
   const updatedCfg = {
     siteName: cfgSiteNameInput.value.trim() || DEFAULT_SETTINGS.siteName,
     subtitle: cfgSubtitleInput.value.trim() || DEFAULT_SETTINGS.subtitle,
-    logoUrl: isSafeUrl(cfgLogoUrlInput.value.trim()) ? cfgLogoUrlInput.value.trim() : "",
+    logoUrl: isSafeImageSrc(rawLogo) ? rawLogo : "",
     accentColor: cfgAccentColorInput.value || DEFAULT_SETTINGS.accentColor,
     aboutText: cfgAboutTextInput.value.trim() || DEFAULT_SETTINGS.aboutText,
     overviewText: cfgOverviewTextInput.value.trim() || DEFAULT_SETTINGS.overviewText,
     handleText: cfgHandleTextInput.value.trim() || DEFAULT_SETTINGS.handleText,
     orgText: cfgOrgTextInput.value.trim() || DEFAULT_SETTINGS.orgText,
-    whatsappUrl: isSafeUrl(cfgWhatsappUrlInput.value.trim()) ? cfgWhatsappUrlInput.value.trim() : DEFAULT_SETTINGS.whatsappUrl,
+    whatsappUrl: isSafeExternalUrl(cfgWhatsappUrlInput.value.trim()) ? cfgWhatsappUrlInput.value.trim() : DEFAULT_SETTINGS.whatsappUrl,
     whatsappLabel: cfgWhatsappLabelInput.value.trim() || DEFAULT_SETTINGS.whatsappLabel
   };
-
   applySiteSettings(updatedCfg);
   saveLocalSettings(updatedCfg);
-  await saveSettingsToCloud(updatedCfg);
+  if (updatedCfg.logoUrl.length < 250000) await saveSettingsToCloud(updatedCfg);
   settingsStatus.textContent = "تم حفظ إعدادات الموقع وتحديث الشكل والتواصل بنجاح.";
 });
 
@@ -588,36 +534,23 @@ categoryNav.addEventListener("click", (e) => {
   renderFeed();
 });
 
-searchInput.addEventListener("input", (e) => {
-  searchQuery = e.target.value;
-  renderFeed();
-});
+searchInput.addEventListener("input", (e) => { searchQuery = e.target.value; renderFeed(); });
 
 newsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!isUnlocked) return;
-
   const title = newsTitleInput.value.trim();
   const source = newsSourceInput.value.trim() || siteSettings.siteName;
   const image = newsImageInput.value.trim();
   const category = newsCategorySelect.value;
   const breaking = isBreakingCheckbox.checked;
   const body = newsBodyInput.value.trim();
-
   if (!title || !body) return;
 
   if (editingId) {
     newsList = newsList.map((item) => {
       if (String(item.id) !== String(editingId)) return item;
-      const updated = {
-        ...item,
-        title,
-        source,
-        image: isSafeUrl(image) ? image : "",
-        category,
-        breaking,
-        body
-      };
+      const updated = { ...item, title, source, image: isSafeImageSrc(image) ? image : "", category, breaking, body };
       saveItemToCloud(updated);
       return updated;
     });
@@ -630,18 +563,10 @@ newsForm.addEventListener("submit", async (e) => {
 
   const now = Date.now();
   const newItem = {
-    id: `manual_${now}`,
-    timestamp: now,
-    title,
-    source,
-    image: isSafeUrl(image) ? image : "",
-    category,
-    breaking,
-    link: "",
-    body,
+    id: `manual_${now}`, timestamp: now, title, source,
+    image: isSafeImageSrc(image) ? image : "", category, breaking, link: "", body,
     createdAt: new Date(now).toLocaleString("ar-EG")
   };
-
   newsList = [newItem, ...newsList];
   saveLocalNews(newsList);
   renderTicker();
@@ -653,53 +578,27 @@ newsForm.addEventListener("submit", async (e) => {
 rssForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   if (!isUnlocked) return;
-
   const feedUrl = rssUrlInput.value.trim();
   const sourceName = rssSourceNameInput.value.trim();
   const category = rssCategorySelect.value;
-
-  if (!isSafeUrl(feedUrl)) {
-    rssStatus.textContent = "يرجى إدخال رابط RSS صحيح يبدأ بـ http أو https.";
-    return;
-  }
-
+  if (!isSafeExternalUrl(feedUrl)) { rssStatus.textContent = "يرجى إدخال رابط RSS صحيح يبدأ بـ http أو https."; return; }
   rssStatus.textContent = "جاري سحب الأخبار...";
   try {
-    const items = await fetchSingleFeed({
-      name: sourceName,
-      url: feedUrl,
-      category,
-      hint: category === "تلقائي" ? "دولية" : category
-    });
-
-    if (!items.length) {
-      rssStatus.textContent = "لم يتم العثور على عناصر في هذا الرابط.";
-      return;
-    }
-
-    newsList = [...items, ...newsList];
-    newsList.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+    const items = await fetchSingleFeed({ name: sourceName, url: feedUrl, category, hint: category === "تلقائي" ? "دولية" : category });
+    if (!items.length) { rssStatus.textContent = "لم يتم العثور على عناصر في هذا الرابط."; return; }
+    newsList = [...items, ...newsList].sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
     saveLocalNews(newsList);
     renderTicker();
     renderFeed();
-    for (const item of items) {
-      await saveItemToCloud(item);
-    }
+    for (const item of items) await saveItemToCloud(item);
     rssStatus.textContent = `تمت إضافة ${items.length} أخبار بنجاح.`;
     rssForm.reset();
-  } catch {
-    rssStatus.textContent = "تعذر جلب الرابط حالياً؛ تأكد من صحة رابط RSS أو الاتصال.";
-  }
+  } catch { rssStatus.textContent = "تعذر جلب الرابط حالياً؛ تأكد من صحة رابط RSS أو الاتصال."; }
 });
 
 newsFeed.addEventListener("click", async (e) => {
   const editBtn = e.target.closest("button[data-edit]");
-  if (editBtn && isUnlocked) {
-    e.stopPropagation();
-    startEditingNews(editBtn.dataset.edit);
-    return;
-  }
-
+  if (editBtn && isUnlocked) { e.stopPropagation(); startEditingNews(editBtn.dataset.edit); return; }
   const delBtn = e.target.closest("button[data-del]");
   if (delBtn && isUnlocked) {
     e.stopPropagation();
@@ -711,17 +610,12 @@ newsFeed.addEventListener("click", async (e) => {
     await deleteItemFromCloud(id);
     return;
   }
-
   const card = e.target.closest("article[data-open]");
-  if (card) {
-    openArticleModal(card.dataset.open);
-  }
+  if (card) openArticleModal(card.dataset.open);
 });
 
 closeModalBtn.addEventListener("click", closeArticleModal);
-articleModal.addEventListener("click", (e) => {
-  if (e.target === articleModal) closeArticleModal();
-});
+articleModal.addEventListener("click", (e) => { if (e.target === articleModal) closeArticleModal(); });
 
 applySiteSettings(siteSettings);
 renderTicker();
