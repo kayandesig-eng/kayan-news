@@ -3,53 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
   <title>كيان نيوز | KAYAN NEWS</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230284c7'/%3E%3Cstop offset='100%25' stop-color='%231e3a8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Crect x='26' y='11' width='12' height='22' rx='6' fill='%23ffffff'/%3E%3Cpath d='M19 26a13 13 0 0 0 26 0' fill='none' stroke='%2338bdf8' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M32 39v9M24 48h16' stroke='%23f59e0b' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='14' r='5' fill='%23ef4444'/%3E%3C/svg%3E" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b132b'/%3E%3Cstop offset='55%25' stop-color='%231d4ed8'/%3E%3Cstop offset='100%25' stop-color='%23050914'/%3E%3C/linearGradient%3E%3ClinearGradient id='gold' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%23f59e0b'/%3E%3Cstop offset='100%25' stop-color='%23fde047'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)' stroke='url(%23gold)' stroke-width='2'/%3E%3Crect x='26' y='11' width='12' height='22' rx='6' fill='%23ffffff'/%3E%3Cpath d='M19 26a13 13 0 0 0 26 0' fill='none' stroke='url(%23gold)' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M32 39v9M24 48h16' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='14' r='5' fill='%23ef4444'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
       <div class="brand-logo" id="brandLogoBox" aria-hidden="true">
-        <svg id="defaultLogoSvg" viewBox="0 0 120 56" width="108" height="50">
+        <svg id="defaultLogoSvg" viewBox="0 0 124 56" width="112" height="50">
           <defs>
             <linearGradient id="kayanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#0ea5e9" />
               <stop offset="55%" stop-color="#1d4ed8" />
-              <stop offset="100%" stop-color="#0f172a" />
+              <stop offset="100%" stop-color="#090d16" />
             </linearGradient>
             <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#f59e0b" />
-              <stop offset="100%" stop-color="#fde047" />
+              <stop offset="0%" stop-color="#d97706" />
+              <stop offset="50%" stop-color="#fde047" />
+              <stop offset="100%" stop-color="#f59e0b" />
             </linearGradient>
           </defs>
-          <rect x="2" y="2" width="116" height="52" rx="14" fill="url(#kayanGrad)" stroke="url(#goldGrad)" stroke-width="1.8" />
-          <!-- أيقونة صحف/شاشة بث -->
+          <rect x="2" y="2" width="120" height="52" rx="14" fill="url(#kayanGrad)" stroke="url(#goldGrad)" stroke-width="1.8" />
           <rect x="11" y="13" width="22" height="30" rx="4" fill="rgba(255,255,255,0.12)" stroke="#38bdf8" stroke-width="1.5" />
           <line x1="15" y1="19" x2="29" y2="19" stroke="#fde047" stroke-width="2" stroke-linecap="round" />
           <line x1="15" y1="25" x2="29" y2="25" stroke="#fff" stroke-width="1.5" stroke-linecap="round" />
           <line x1="15" y1="31" x2="25" y2="31" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" />
-          <!-- ميكروفون البث الإخباري -->
-          <rect x="52" y="10" width="10" height="18" rx="5" fill="#ffffff" />
-          <path d="M46 22a11 11 0 0 0 22 0" fill="none" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" />
-          <line x1="57" y1="33" x2="57" y2="42" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
-          <line x1="50" y1="42" x2="64" y2="42" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" />
-          <!-- عدسة كاميرا وبث مباشر -->
-          <rect x="81" y="16" width="26" height="22" rx="5" fill="rgba(15,23,42,0.65)" stroke="#38bdf8" stroke-width="1.6" />
-          <circle cx="94" cy="27" r="6" fill="none" stroke="#fde047" stroke-width="2" />
-          <circle cx="94" cy="27" r="2.2" fill="#38bdf8" />
-          <circle cx="104" cy="13" r="4" fill="#ef4444" />
+          <rect x="53" y="10" width="10" height="18" rx="5" fill="#ffffff" />
+          <path d="M47 22a11 11 0 0 0 22 0" fill="none" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="58" y1="33" x2="58" y2="42" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="51" y1="42" x2="65" y2="42" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round" />
+          <rect x="83" y="16" width="26" height="22" rx="5" fill="rgba(15,23,42,0.7)" stroke="#38bdf8" stroke-width="1.6" />
+          <circle cx="96" cy="27" r="6" fill="none" stroke="#fde047" stroke-width="2" />
+          <circle cx="96" cy="27" r="2.2" fill="#38bdf8" />
+          <circle cx="106" cy="13" r="4" fill="#ef4444" />
         </svg>
         <img id="customLogoImg" class="custom-logo-img hidden" alt="شعار الموقع" />
       </div>
       <div class="brand-text">
         <div class="brand-title-row">
           <h1 id="siteTitleText">كيان نيوز</h1>
-          <span class="live-pill">مباشر</span>
+          <span class="live-pill">رسمي • مباشر</span>
         </div>
-        <span id="siteSubtitleText">KAYAN NEWS • NETWORK</span>
+        <span id="siteSubtitleText">KAYAN NEWS • OFFICIAL PORTAL</span>
       </div>
     </div>
+
     <div class="top-actions">
       <button id="refreshAutoBtn" class="btn-sync" type="button">تحديث المصادر</button>
       <button id="toggleAdminBtn" class="btn-admin" type="button">لوحة الإدارة</button>
@@ -59,24 +63,58 @@
   <div class="ticker">
     <span class="ticker-badge">عاجل</span>
     <div class="ticker-track">
-      <div id="breakingTicker" class="ticker-content">مرحباً بكم في منصة كيان نيوز الإخبارية — متابعة مستمرة على مدار الساعة</div>
+      <div id="breakingTicker" class="ticker-content">مرحباً بكم في منصة كيان نيوز الإخبارية الرسمية — تغطية سياسية ورياضية وثقافية على مدار الساعة</div>
     </div>
   </div>
 
-  <nav class="categories" id="categoryNav">
-    <button data-cat="الكل" class="active" type="button">الكل</button>
-    <button data-cat="محلية" type="button">محلية</button>
-    <button data-cat="رياضة محلية" type="button">رياضة محلية</button>
-    <button data-cat="عربية" type="button">عربية</button>
-    <button data-cat="رياضة عربية" type="button">رياضة عربية</button>
-    <button data-cat="دولية" type="button">دولية</button>
-    <button data-cat="رياضة دولية" type="button">رياضة دولية</button>
-    <button data-cat="سياسة" type="button">سياسة</button>
-    <button data-cat="منوعات" type="button">منوعات</button>
+  <!-- شريط المتابعة والاشتراك وإرسال آخر الأخبار -->
+  <section class="subscription-strip" aria-label="المتابعة والاشتراك">
+    <div class="sub-info">
+      <span class="sub-badge">🔔 خدمة المشتركين</span>
+      <p id="subStatusText">اشترك لتصلك آخر الأخبار والتحديثات أولاً بأول.</p>
+    </div>
+    <div class="sub-actions">
+      <input type="text" id="subscriberContactInput" class="sub-input" placeholder="بريدك أو اسمك للمتابعة (اختياري)" />
+      <button id="subscribeBtn" class="btn-subscribe" type="button">اشتراك ومتابعة</button>
+      <button id="sendLatestDigestBtn" class="btn-digest" type="button">📩 إرسال آخر الأخبار والتحديثات</button>
+    </div>
+  </section>
+
+  <!-- النوافذ الثلاث الرئيسية -->
+  <nav class="main-windows" id="mainWindowsNav" aria-label="النوافذ الرئيسية">
+    <button type="button" class="win-tab win-politics active" data-win="politics">
+      <span class="win-icon">🏛️</span>
+      <span class="win-title">القسم السياسي</span>
+      <span class="win-tag">محلية • عربي • دولية</span>
+    </button>
+    <button type="button" class="win-tab win-sports" data-win="sports">
+      <span class="win-icon">⚽</span>
+      <span class="win-title">القسم الرياضي</span>
+      <span class="win-tag">محلية • عربي • دولية</span>
+    </button>
+    <button type="button" class="win-tab win-culture" data-win="culture">
+      <span class="win-icon">🎭</span>
+      <span class="win-title">منوعات وثقافة</span>
+      <span class="win-tag">فكر • فن • مجتمع</span>
+    </button>
   </nav>
 
+  <!-- الأقسام الفرعية للنافذة النشطة (السياسة أو الرياضة) -->
+  <div id="subCategoriesBar" class="sub-categories-bar"></div>
+
+  <!-- بانر تعريف النافذة والقسم الفرعي الحالي -->
+  <section id="windowBanner" class="window-banner banner-politics">
+    <div class="banner-inner">
+      <span id="bannerIcon" class="banner-icon">🏛️</span>
+      <div>
+        <h2 id="bannerTitle">النافذة السياسية — جميع الأخبار السياسية</h2>
+        <p id="bannerDesc">متابعة رسمية للشؤون والملفات السياسية المحلية والعربية والدولية.</p>
+      </div>
+    </div>
+  </section>
+
   <div class="controls-bar">
-    <input type="search" id="searchInput" placeholder="ابحث في أخبار كيان نيوز أو المصدر..." aria-label="ابحث في الأخبار" />
+    <input type="search" id="searchInput" placeholder="ابحث في الأخبار أو المصادر الرياضية والسياسية والثقافية..." aria-label="ابحث في الأخبار" />
     <span id="autoSyncStatus" class="sync-status">جاهز للمزامنة</span>
   </div>
 
@@ -90,7 +128,7 @@
       <h3 id="newsFormTitle">إضافة خبر جديد</h3>
       <input type="hidden" id="editNewsId" />
       <input type="text" id="newsTitle" placeholder="عنوان الخبر" required />
-      <input type="text" id="newsSource" placeholder="اسم المصدر (مثال: كيان نيوز، الجزيرة، بي إن سبورت)" />
+      <input type="text" id="newsSource" placeholder="اسم المصدر (مثال: كيان نيوز، كووورة، الجزيرة)" />
 
       <div class="gallery-upload-box">
         <label for="newsImageFile" class="btn-gallery">📷 اختيار صورة من المعرض مباشرة</label>
@@ -108,19 +146,19 @@
       <input type="text" id="newsImage" placeholder="أو الصق رابط صورة خارجي (اختياري)" />
 
       <select id="newsCategory">
-        <option value="محلية">محلية</option>
-        <option value="رياضة محلية">رياضة محلية</option>
-        <option value="عربية">عربية</option>
-        <option value="رياضة عربية">رياضة عربية</option>
-        <option value="دولية">دولية</option>
-        <option value="رياضة دولية">رياضة دولية</option>
-        <option value="سياسة">سياسة</option>
-        <option value="منوعات">منوعات</option>
+        <option value="سياسة محلية">سياسة — محلية</option>
+        <option value="سياسة عربية">سياسة — عربي</option>
+        <option value="سياسة دولية">سياسة — دولية</option>
+        <option value="رياضة محلية">رياضة — محلية</option>
+        <option value="رياضة عربية">رياضة — عربي</option>
+        <option value="رياضة دولية">رياضة — دولية</option>
+        <option value="منوعات وثقافة">منوعات وثقافة</option>
       </select>
+
       <label class="check-row">
         <input type="checkbox" id="isBreaking" /> تثبيت في شريط العاجل
       </label>
-      <textarea id="newsBody" rows="4" placeholder="تفاصيل الخبر الكاملة (سيتم إرفاق توقيع كيان نيوز في نهايته تلقائياً)..." required></textarea>
+      <textarea id="newsBody" rows="4" placeholder="تفاصيل الخبر الكاملة..." required></textarea>
       <div class="form-btns">
         <button type="submit" id="submitNewsBtn" class="btn-primary">نشر الخبر</button>
         <button type="button" id="cancelEditBtn" class="btn-secondary hidden">إلغاء التعديل</button>
@@ -132,15 +170,14 @@
       <input type="url" id="rssUrl" placeholder="أدخل رابط RSS" required />
       <input type="text" id="rssSourceName" placeholder="اسم المصدر (اختياري)" />
       <select id="rssCategory">
-        <option value="تلقائي">تصنيف تلقائي حسب المحتوى</option>
-        <option value="محلية">محلية</option>
-        <option value="رياضة محلية">رياضة محلية</option>
-        <option value="عربية">عربية</option>
-        <option value="رياضة عربية">رياضة عربية</option>
-        <option value="دولية">دولية</option>
-        <option value="رياضة دولية">رياضة دولية</option>
-        <option value="سياسة">سياسة</option>
-        <option value="منوعات">منوعات</option>
+        <option value="تلقائي">تصنيف تلقائي حسب المحتوى والمصدر</option>
+        <option value="سياسة محلية">سياسة — محلية</option>
+        <option value="سياسة عربية">سياسة — عربي</option>
+        <option value="سياسة دولية">سياسة — دولية</option>
+        <option value="رياضة محلية">رياضة — محلية</option>
+        <option value="رياضة عربية">رياضة — عربي</option>
+        <option value="رياضة دولية">رياضة — دولية</option>
+        <option value="منوعات وثقافة">منوعات وثقافة</option>
       </select>
       <button type="submit" id="fetchRssBtn" class="btn-rss">سحب ونشر من المصدر</button>
       <small id="rssStatus" class="status-msg"></small>
@@ -152,7 +189,7 @@
       <input type="text" id="cfgSiteName" placeholder="اسم الموقع (مثال: كيان نيوز)" required />
       <input type="text" id="cfgSubtitle" placeholder="العنوان الفرعي (مثال: KAYAN NEWS)" />
 
-      <label class="field-label">صورة الشعار في الهيدر (اختر من المعرض أو ضع رابطاً، واتركه فارغاً للشعار الفخم الافتراضي)</label>
+      <label class="field-label">صورة الشعار في الهيدر (اختر من المعرض أو ضع رابطاً)</label>
       <div class="gallery-upload-box">
         <label for="cfgLogoFile" class="btn-gallery">🖼️ اختيار شعار من المعرض</label>
         <input type="file" id="cfgLogoFile" accept="image/*" class="hidden-file-input" />
@@ -160,21 +197,20 @@
       </div>
       <input type="text" id="cfgLogoUrl" placeholder="رابط الشعار أو بيانات الصورة المرفوعة" />
 
-      <label class="field-label">اللون الرئيسي للموقع والشريط العلوي</label>
+      <label class="field-label">اللون الرئيسي للموقع</label>
       <div class="color-row">
-        <input type="color" id="cfgAccentColor" value="#0284c7" />
-        <span id="accentHexLabel">#0284c7</span>
+        <input type="color" id="cfgAccentColor" value="#1d4ed8" />
+        <span id="accentHexLabel">#1d4ed8</span>
       </div>
 
-      <label class="field-label">نصوص «حول» و«نبذة تعريفية» في أسفل الموقع</label>
+      <label class="field-label">نصوص «حول» و«نبذة تعريفية»</label>
       <textarea id="cfgAboutText" rows="2" placeholder="نص قسم حول كيان نيوز..."></textarea>
       <textarea id="cfgOverviewText" rows="2" placeholder="نص النبذة التعريفية..."></textarea>
 
-      <label class="field-label">بيانات وطرق التواصل</label>
-      <input type="text" id="cfgHandleText" placeholder="حساب التواصل (مثال: @muad.alwahidi)" />
-      <input type="text" id="cfgOrgText" placeholder="اسم الجهة أو المؤسسة (مثال: مؤسسة كيان للتصميم / KAYAN DESIGNS)" />
-      <input type="url" id="cfgWhatsappUrl" placeholder="رابط واتساب أو تواصل (https://wa.me/...)" />
-      <input type="text" id="cfgWhatsappLabel" placeholder="نص رابط التواصل (مثال: التواصل عبر واتساب)" />
+      <label class="field-label">بيانات التواصل الرسمية</label>
+      <input type="email" id="cfgEmailText" placeholder="البريد الرسمي (kayandesig@gmail.com)" />
+      <input type="text" id="cfgSocialHandle" placeholder="معرف التواصل الاجتماعي (@kayan_news)" />
+      <input type="text" id="cfgOrgText" placeholder="اسم الجهة أو المؤسسة" />
 
       <div class="form-btns">
         <button type="submit" class="btn-primary">حفظ إعدادات الموقع</button>
@@ -186,6 +222,7 @@
 
   <main id="newsFeed" class="news-grid"></main>
 
+  <!-- نافذة قراءة الخبر الكاملة + الإعجاب والتعليقات -->
   <div id="articleModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
       <button id="closeModalBtn" class="modal-close" type="button">✕</button>
@@ -203,31 +240,59 @@
       </div>
       <h2 id="modalTitle"></h2>
       <p id="modalBody"></p>
-      <div class="article-signature-box">
-        <span>🎙️ خاص لموقع كيان نيوز KAYAN NEWS</span>
+      <div class="article-signature-box">🎙️ خاص لموقع كيان نيوز KAYAN NEWS</div>
+
+      <div class="modal-engagement">
+        <button id="modalLikeBtn" class="like-btn" type="button">❤️ إعجاب (<span id="modalLikeCount">0</span>)</button>
+        <button id="modalShareArticleBtn" class="share-article-btn" type="button">📤 مشاركة الخبر</button>
+        <a id="modalLink" class="source-link hidden" target="_blank" rel="noopener noreferrer">قراءة من المصدر الأصلي</a>
       </div>
-      <a id="modalLink" class="source-link hidden" target="_blank" rel="noopener noreferrer">قراءة من المصدر الأصلي</a>
+
+      <section class="comments-section" aria-label="التعليقات">
+        <h3>💬 تعليقات القراء (<span id="modalCommentsCount">0</span>)</h3>
+        <form id="commentForm" class="comment-form">
+          <input type="text" id="commentAuthorInput" placeholder="الاسم (اختياري — الافتراضي: قارئ كيان)" />
+          <textarea id="commentTextInput" rows="2" placeholder="اكتب تعليقك أو رأيك حول الخبر..." required></textarea>
+          <button type="submit" class="btn-primary">إرسال التعليق</button>
+        </form>
+        <div id="commentsList" class="comments-list"></div>
+      </section>
     </div>
   </div>
 
+  <!-- الفوتر الرسمي الفخم مع وسائل التواصل والإعلانات -->
   <footer class="footer">
     <div class="footer-grid">
       <div class="footer-col" id="about">
         <h3>حول كيان نيوز</h3>
-        <p id="footerAboutText">منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.</p>
+        <p id="footerAboutText">منصة إخبارية عربية رسمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بتقديم تغطية سياسية ورياضية وثقافية موثوقة ومنظمة.</p>
       </div>
       <div class="footer-col" id="overview">
         <h3>نبذة تعريفية</h3>
-        <p id="footerOverviewText">نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.</p>
+        <p id="footerOverviewText">نجمع الأخبار من مصادر معتمدة مع إتاحة النشر والتحرير والتصنيف المتعدد النوافذ، وتجربة تفاعلية متكاملة على الهاتف والويب.</p>
       </div>
       <div class="footer-col" id="contact">
-        <h3>تواصل معنا</h3>
-        <p>للمراسلات، الإعلانات، أو إرسال الأخبار والملاحظات:</p>
-        <ul class="contact-list">
-          <li>الحساب الرسمي: <strong id="footerHandleText">@muad.alwahidi</strong></li>
-          <li>المؤسسة: <strong id="footerOrgText">مؤسسة كيان للتصميم / KAYAN DESIGNS</strong></li>
-          <li><a id="footerWhatsappLink" href="https://wa.me/" target="_blank" rel="noopener noreferrer">التواصل عبر واتساب</a></li>
-        </ul>
+        <h3>التواصل والمراسلة والإعلانات</h3>
+        <p>للمراسلات الرسمية، الإعلانات، أو إرسال الأخبار والملاحظات:</p>
+        <div class="social-cards">
+          <a id="footerEmailLink" class="social-badge badge-mail" href="mailto:kayandesig@gmail.com">
+            <span class="soc-ico">✉️</span>
+            <span class="soc-text">البريد الرسمي: <strong id="footerEmailText">kayandesig@gmail.com</strong></span>
+          </a>
+          <a class="social-badge badge-fb" href="https://www.facebook.com/kayan_news" target="_blank" rel="noopener noreferrer">
+            <span class="soc-ico">f</span>
+            <span class="soc-text">فيسبوك: <strong class="soc-handle">@kayan_news</strong></span>
+          </a>
+          <a class="social-badge badge-tt" href="https://www.tiktok.com/@kayan_news" target="_blank" rel="noopener noreferrer">
+            <span class="soc-ico">♪</span>
+            <span class="soc-text">تيك توك: <strong class="soc-handle">@kayan_news</strong></span>
+          </a>
+          <a class="social-badge badge-x" href="https://x.com/kayan_news" target="_blank" rel="noopener noreferrer">
+            <span class="soc-ico">𝕏</span>
+            <span class="soc-text">إكس (X): <strong class="soc-handle">@kayan_news</strong></span>
+          </a>
+        </div>
+        <p class="org-line">الجهة المالكة: <strong id="footerOrgText">مؤسسة كيان للتصميم / KAYAN DESIGNS</strong></p>
       </div>
     </div>
     <div class="footer-bottom">

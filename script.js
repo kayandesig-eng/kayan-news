@@ -1,274 +1,253 @@
 const DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/news.json";
 const SETTINGS_DB_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/settings.json";
-const STORAGE_KEY = "kayan_news_items_v4";
-const SETTINGS_STORAGE_KEY = "kayan_news_settings_v2";
-const AUTO_FETCH_KEY = "kayan_news_last_auto_fetch_v4";
+const STORAGE_KEY = "kayan_news_items_v5";
+const SETTINGS_STORAGE_KEY = "kayan_news_settings_v3";
+const SUB_STORAGE_KEY = "kayan_news_sub_v1";
+const ENGAGE_STORAGE_KEY = "kayan_news_engage_v1";
+const AUTO_FETCH_KEY = "kayan_news_last_auto_fetch_v5";
 const ADMIN_PASSCODE = "kayan2026";
 const KAYAN_TAG = "خاص لموقع كيان نيوز KAYAN NEWS";
+const SITE_URL = "https://kayandesig-eng.github.io/kayan-news/";
 
 const DEFAULT_SETTINGS = {
   siteName: "كيان نيوز",
-  subtitle: "KAYAN NEWS • NETWORK",
+  subtitle: "KAYAN NEWS • OFFICIAL PORTAL",
   logoUrl: "",
-  accentColor: "#0284c7",
-  aboutText: "منصة إخبارية عربية رقمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بمتابعة المستجدات المحلية والرياضية والعربية والدولية وتنظيمها في أقسام واضحة لسهولة الوصول.",
-  overviewText: "نجمع الأخبار من مصادر إخبارية ورياضية متنوعة مع إتاحة النشر والتحرير والتصنيف المباشر، لتقديم تجربة قراءة سريعة ومنظمة على الهاتف والويب.",
-  handleText: "@muad.alwahidi",
-  orgText: "مؤسسة كيان للتصميم / KAYAN DESIGNS",
-  whatsappUrl: "https://wa.me/",
-  whatsappLabel: "التواصل عبر واتساب"
+  accentColor: "#1d4ed8",
+  aboutText: "منصة إخبارية عربية رسمية تابعة لكيان نيوز (KAYAN NEWS)، تُعنى بتقديم تغطية سياسية ورياضية وثقافية موثوقة ومنظمة.",
+  overviewText: "نجمع الأخبار من مصادر معتمدة مع إتاحة النشر والتحرير والتصنيف المتعدد النوافذ، وتجربة تفاعلية متكاملة على الهاتف والويب.",
+  emailText: "kayandesig@gmail.com",
+  socialHandle: "@kayan_news",
+  orgText: "مؤسسة كيان للتصميم / KAYAN DESIGNS"
 };
 
 const TRUSTED_FEEDS = [
-  { name: "الجزيرة", url: "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9", hint: "عربية" },
-  { name: "بي بي سي عربي", url: "https://feeds.bbci.co.uk/arabic/rss.xml", hint: "دولية" },
+  { name: "الجزيرة", url: "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9", hint: "سياسة عربية" },
+  { name: "بي بي سي عربي", url: "https://feeds.bbci.co.uk/arabic/rss.xml", hint: "سياسة دولية" },
+  { name: "العربية", url: "https://www.alarabiya.net/.mrss/ar.xml", hint: "سياسة عربية" },
+  { name: "الحدث", url: "https://www.alarabiya.net/.mrss/ar/alhadath.xml", hint: "سياسة عربية" },
+  { name: "يمن شباب", url: "https://yemenshabab.net/rss", hint: "سياسة محلية" },
+  { name: "عدن المستقلة", url: "https://aic-aden.com/feed", hint: "سياسة محلية" },
   { name: "الجزيرة نت - رياضة", url: "https://www.aljazeera.net/aljazeerarss/sport/rss.xml", hint: "رياضة عربية" },
-  { name: "يمن شباب / محليات", url: "https://yemenshabab.net/rss", hint: "محلية" },
-  { name: "العربية", url: "https://www.alarabiya.net/.mrss/ar.xml", hint: "عربية" },
-  { name: "الحدث", url: "https://www.alarabiya.net/.mrss/ar/alhadath.xml", hint: "عربية" },
-  { name: "عدن المستقلة / محلي", url: "https://aic-aden.com/feed", hint: "محلية" },
-  { name: "بي إن سبورت / رياضة", url: "https://www.beinsports.com/ar-mena/rss", hint: "رياضة دولية" },
-  { name: "SSC / رياضة", url: "https://www.ssc.sa/rss", hint: "رياضة عربية" }
+  { name: "موقع رياضة (Riyadahh)", url: "https://riyadahh.com/feed", hint: "رياضة عربية" },
+  { name: "منصة يمن تيم (Yemen Team)", url: "https://yementeam.com/feed", hint: "رياضة محلية" },
+  { name: "موقع كووورة", url: "https://www.kooora.com/rss.aspx", hint: "رياضة عربية" },
+  { name: "القسم الرياضي في يمن مونيتور", url: "https://yemenmonitor.com/category/sports/feed", hint: "رياضة محلية" },
+  { name: "موقع في الجول (FilGoal)", url: "https://www.filgoal.com/rss", hint: "رياضة عربية" },
+  { name: "موقع يلا كورة (Yallakora)", url: "https://www.yallakora.com/rss/feed.aspx", hint: "رياضة عربية" },
+  { name: "موقع السبورت (Elsport)", url: "https://www.elsport.com/rss/arabic", hint: "رياضة دولية" },
+  { name: "سوفا سكور (Sofascore)", url: "https://www.sofascore.com/rss", hint: "رياضة دولية" },
+  { name: "فلاش سكور (Flashscore)", url: "https://www.flashscore.com/rss", hint: "رياضة دولية" },
+  { name: "منصة TOD / beIN SPORTS", url: "https://www.beinsports.com/ar-mena/rss", hint: "رياضة دولية" },
+  { name: "منصة شاهد (Shahid VIP)", url: "https://shahid.mbc.net/rss", hint: "منوعات وثقافة" }
 ];
 
 const defaultNews = [
   {
-    id: "welcome_kayan_1",
-    timestamp: Date.now(),
-    title: "انطلاق منصة كيان نيوز بحلتها الجديدة وتصنيفاتها المتكاملة",
-    source: "كيان نيوز",
-    category: "محلية",
-    breaking: true,
-    image: "",
-    link: "",
-    body: "مرحباً بكم في منصة كيان نيوز (KAYAN NEWS)؛ متابعة شاملة ومصنفة للأخبار المحلية والرياضية والعربية والدولية على مدار الساعة.",
+    id: "kayan_pol_1", timestamp: Date.now() - 1000,
+    title: "تغطية سياسية موسعة لأبرز المستجدات المحلية والإقليمية عبر كيان نيوز",
+    source: "كيان نيوز", category: "سياسة محلية", breaking: true, image: "", link: "",
+    body: "تواصل منصة كيان نيوز رصد وتوثيق التطورات السياسية المحلية والعربية والدولية بدقة ومهنية عالية.",
+    createdAt: new Date().toLocaleString("ar-EG")
+  },
+  {
+    id: "kayan_sp_1", timestamp: Date.now() - 2000,
+    title: "نافذة الرياضة في كيان نيوز تضم تغطية شاملة للبطولات المحلية والعربية والدولية",
+    source: "كيان نيوز • الرياضة", category: "رياضة عربية", breaking: false, image: "", link: "",
+    body: "متابعة حية لأخبار المنتخبات والأندية والبطولات عبر نخبة المصادر الرياضية المحلية والعربية والعالمية.",
+    createdAt: new Date().toLocaleString("ar-EG")
+  },
+  {
+    id: "kayan_cul_1", timestamp: Date.now() - 3000,
+    title: "نافذة منوعات وثقافة: إضاءات فكرية وفنية ومجتمعية متجددة",
+    source: "كيان نيوز • الثقافة", category: "منوعات وثقافة", breaking: false, image: "", link: "",
+    body: "مساحة ثقافية وفنية ومجتمعية تبرز الإبداع والفعاليات المتنوعة بروح عصرية.",
     createdAt: new Date().toLocaleString("ar-EG")
   }
 ];
 
-let currentCategory = "الكل";
+let activeWindow = "politics";
+let activeSubCat = "الكل";
 let searchQuery = "";
 let newsList = loadLocalNews();
 let siteSettings = loadLocalSettings();
+let subState = loadSubState();
+let engageState = loadEngageState();
 let isUnlocked = false;
 let editingId = null;
+let currentModalNewsId = null;
 
-const toggleAdminBtn = document.getElementById("toggleAdminBtn");
-const refreshAutoBtn = document.getElementById("refreshAutoBtn");
-const lockAdminBtn = document.getElementById("lockAdminBtn");
-const adminPanel = document.getElementById("adminPanel");
-const autoSyncStatus = document.getElementById("autoSyncStatus");
-const siteTitleText = document.getElementById("siteTitleText");
-const siteSubtitleText = document.getElementById("siteSubtitleText");
-const defaultLogoSvg = document.getElementById("defaultLogoSvg");
-const customLogoImg = document.getElementById("customLogoImg");
-const footerAboutText = document.getElementById("footerAboutText");
-const footerOverviewText = document.getElementById("footerOverviewText");
-const footerHandleText = document.getElementById("footerHandleText");
-const footerOrgText = document.getElementById("footerOrgText");
-const footerWhatsappLink = document.getElementById("footerWhatsappLink");
-const footerCopyrightText = document.getElementById("footerCopyrightText");
-const siteSettingsForm = document.getElementById("siteSettingsForm");
-const cfgSiteNameInput = document.getElementById("cfgSiteName");
-const cfgSubtitleInput = document.getElementById("cfgSubtitle");
-const cfgLogoFileInput = document.getElementById("cfgLogoFile");
-const clearLogoBtn = document.getElementById("clearLogoBtn");
-const cfgLogoUrlInput = document.getElementById("cfgLogoUrl");
-const cfgAccentColorInput = document.getElementById("cfgAccentColor");
-const accentHexLabel = document.getElementById("accentHexLabel");
-const cfgAboutTextInput = document.getElementById("cfgAboutText");
-const cfgOverviewTextInput = document.getElementById("cfgOverviewText");
-const cfgHandleTextInput = document.getElementById("cfgHandleText");
-const cfgOrgTextInput = document.getElementById("cfgOrgText");
-const cfgWhatsappUrlInput = document.getElementById("cfgWhatsappUrl");
-const cfgWhatsappLabelInput = document.getElementById("cfgWhatsappLabel");
-const resetSettingsBtn = document.getElementById("resetSettingsBtn");
-const settingsStatus = document.getElementById("settingsStatus");
-const newsForm = document.getElementById("newsForm");
-const newsFormTitle = document.getElementById("newsFormTitle");
-const editNewsIdInput = document.getElementById("editNewsId");
-const newsTitleInput = document.getElementById("newsTitle");
-const newsSourceInput = document.getElementById("newsSource");
-const newsImageFileInput = document.getElementById("newsImageFile");
-const clearNewsImgBtn = document.getElementById("clearNewsImgBtn");
-const newsImgPreviewWrap = document.getElementById("newsImgPreviewWrap");
-const newsImgPreview = document.getElementById("newsImgPreview");
-const newsImageInput = document.getElementById("newsImage");
-const newsCategorySelect = document.getElementById("newsCategory");
-const isBreakingCheckbox = document.getElementById("isBreaking");
-const newsBodyInput = document.getElementById("newsBody");
-const submitNewsBtn = document.getElementById("submitNewsBtn");
-const cancelEditBtn = document.getElementById("cancelEditBtn");
-const rssForm = document.getElementById("rssForm");
-const rssUrlInput = document.getElementById("rssUrl");
-const rssSourceNameInput = document.getElementById("rssSourceName");
-const rssCategorySelect = document.getElementById("rssCategory");
-const rssStatus = document.getElementById("rssStatus");
-const newsFeed = document.getElementById("newsFeed");
-const categoryNav = document.getElementById("categoryNav");
-const searchInput = document.getElementById("searchInput");
-const breakingTicker = document.getElementById("breakingTicker");
-const articleModal = document.getElementById("articleModal");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const modalImgWrap = document.getElementById("modalImgWrap");
-const modalImg = document.getElementById("modalImg");
-const modalCat = document.getElementById("modalCat");
-const modalSource = document.getElementById("modalSource");
-const modalDate = document.getElementById("modalDate");
-const modalTitle = document.getElementById("modalTitle");
-const modalBody = document.getElementById("modalBody");
-const modalLink = document.getElementById("modalLink");
+const el = (id) => document.getElementById(id);
+const toggleAdminBtn = el("toggleAdminBtn"), refreshAutoBtn = el("refreshAutoBtn"), lockAdminBtn = el("lockAdminBtn");
+const adminPanel = el("adminPanel"), autoSyncStatus = el("autoSyncStatus");
+const siteTitleText = el("siteTitleText"), siteSubtitleText = el("siteSubtitleText"), defaultLogoSvg = el("defaultLogoSvg"), customLogoImg = el("customLogoImg");
+const footerAboutText = el("footerAboutText"), footerOverviewText = el("footerOverviewText"), footerEmailText = el("footerEmailText"), footerEmailLink = el("footerEmailLink"), footerOrgText = el("footerOrgText"), footerCopyrightText = el("footerCopyrightText");
+const subscriberContactInput = el("subscriberContactInput"), subscribeBtn = el("subscribeBtn"), sendLatestDigestBtn = el("sendLatestDigestBtn"), subStatusText = el("subStatusText");
+const mainWindowsNav = el("mainWindowsNav"), subCategoriesBar = el("subCategoriesBar"), windowBanner = el("windowBanner"), bannerIcon = el("bannerIcon"), bannerTitle = el("bannerTitle"), bannerDesc = el("bannerDesc");
+const newsFeed = el("newsFeed"), searchInput = el("searchInput"), breakingTicker = el("breakingTicker");
+
+function loadLocalNews() {
+  try { const p = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); if (Array.isArray(p) && p.length) return p; } catch {}
+  return [...defaultNews];
+}
+function saveLocalNews(items) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {} }
+function loadLocalSettings() {
+  try { const p = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null"); if (p && typeof p === "object") return { ...DEFAULT_SETTINGS, ...p }; } catch {}
+  return { ...DEFAULT_SETTINGS };
+}
+function saveLocalSettings(cfg) { try { localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cfg)); } catch {} }
+function loadSubState() {
+  try { const p = JSON.parse(localStorage.getItem(SUB_STORAGE_KEY) || "null"); if (p && typeof p === "object") return { subscribed: Boolean(p.subscribed), contact: p.contact || "" }; } catch {}
+  return { subscribed: false, contact: "" };
+}
+function saveSubState(s) { try { localStorage.setItem(SUB_STORAGE_KEY, JSON.stringify(s)); } catch {} }
+function loadEngageState() {
+  try { const p = JSON.parse(localStorage.getItem(ENGAGE_STORAGE_KEY) || "null"); if (p && typeof p === "object") return { likedIds: Array.isArray(p.likedIds) ? p.likedIds : [], extraLikes: p.extraLikes || {}, comments: p.comments || {} }; } catch {}
+  return { likedIds: [], extraLikes: {}, comments: {} };
+}
+function saveEngageState(s) { try { localStorage.setItem(ENGAGE_STORAGE_KEY, JSON.stringify(s)); } catch {} }
 
 function isSafeImageSrc(src) {
   if (!src || typeof src !== "string") return false;
-  const trimmed = src.trim();
-  if (/^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(trimmed)) return true;
-  try {
-    const parsed = new URL(trimmed);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
+  const t = src.trim();
+  if (/^data:image\/(jpeg|jpg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(t)) return true;
+  try { const u = new URL(t); return u.protocol === "https:" || u.protocol === "http:"; } catch { return false; }
 }
-
 function isSafeExternalUrl(url) {
   if (!url || typeof url !== "string") return false;
-  try {
-    const parsed = new URL(url.trim());
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
+  try { const u = new URL(url.trim()); return u.protocol === "https:" || u.protocol === "http:"; } catch { return false; }
 }
 
-function compressImageFile(file, maxWidth = 820, quality = 0.72) {
+function compressImageFile(file, maxWidth = 800, quality = 0.7) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
+    const r = new FileReader();
+    r.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
+        const sc = img.width > maxWidth ? maxWidth / img.width : 1;
+        const c = document.createElement("canvas");
+        c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL("image/jpeg", quality));
       };
-      img.onerror = reject;
-      img.src = reader.result;
+      img.onerror = reject; img.src = r.result;
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    r.onerror = reject; r.readAsDataURL(file);
   });
-}
-
-function updateNewsPreview(src) {
-  const valid = isSafeImageSrc(src);
-  newsImgPreview.src = valid ? src : "";
-  newsImgPreviewWrap.classList.toggle("hidden", !valid);
-  clearNewsImgBtn.classList.toggle("hidden", !valid);
-}
-
-function loadLocalSettings() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || "null");
-    if (parsed && typeof parsed === "object") return { ...DEFAULT_SETTINGS, ...parsed };
-  } catch {}
-  return { ...DEFAULT_SETTINGS };
-}
-
-function saveLocalSettings(cfg) {
-  try { localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cfg)); } catch {}
-}
-
-function applySiteSettings(cfg) {
-  const safeCfg = { ...DEFAULT_SETTINGS, ...(cfg || {}) };
-  siteSettings = safeCfg;
-  siteTitleText.textContent = safeCfg.siteName || DEFAULT_SETTINGS.siteName;
-  siteSubtitleText.textContent = safeCfg.subtitle || DEFAULT_SETTINGS.subtitle;
-  document.title = `${siteTitleText.textContent} | ${siteSubtitleText.textContent}`;
-  const hex = /^#[0-9a-fA-F]{6}$/.test(safeCfg.accentColor || "") ? safeCfg.accentColor : DEFAULT_SETTINGS.accentColor;
-  document.documentElement.style.setProperty("--accent", hex);
-  document.documentElement.style.setProperty("--accent-dark", hex);
-  const hasCustomLogo = isSafeImageSrc(safeCfg.logoUrl);
-  customLogoImg.src = hasCustomLogo ? safeCfg.logoUrl.trim() : "";
-  customLogoImg.classList.toggle("hidden", !hasCustomLogo);
-  defaultLogoSvg.classList.toggle("hidden", hasCustomLogo);
-  footerAboutText.textContent = safeCfg.aboutText || DEFAULT_SETTINGS.aboutText;
-  footerOverviewText.textContent = safeCfg.overviewText || DEFAULT_SETTINGS.overviewText;
-  footerHandleText.textContent = safeCfg.handleText || DEFAULT_SETTINGS.handleText;
-  footerOrgText.textContent = safeCfg.orgText || DEFAULT_SETTINGS.orgText;
-  footerWhatsappLink.textContent = safeCfg.whatsappLabel || DEFAULT_SETTINGS.whatsappLabel;
-  footerWhatsappLink.href = isSafeExternalUrl(safeCfg.whatsappUrl) ? safeCfg.whatsappUrl.trim() : DEFAULT_SETTINGS.whatsappUrl;
-  footerCopyrightText.textContent = `© 2026 ${siteTitleText.textContent} | ${siteSubtitleText.textContent} — جميع الحقوق محفوظة`;
-  cfgSiteNameInput.value = safeCfg.siteName || "";
-  cfgSubtitleInput.value = safeCfg.subtitle || "";
-  cfgLogoUrlInput.value = safeCfg.logoUrl || "";
-  cfgAccentColorInput.value = hex;
-  accentHexLabel.textContent = hex;
-  cfgAboutTextInput.value = safeCfg.aboutText || "";
-  cfgOverviewTextInput.value = safeCfg.overviewText || "";
-  cfgHandleTextInput.value = safeCfg.handleText || "";
-  cfgOrgTextInput.value = safeCfg.orgText || "";
-  cfgWhatsappUrlInput.value = safeCfg.whatsappUrl || "";
-  cfgWhatsappLabelInput.value = safeCfg.whatsappLabel || "";
-}
-
-async function syncSettingsFromCloud() {
-  try {
-    const res = await fetch(SETTINGS_DB_URL);
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data && typeof data === "object") {
-      const merged = { ...DEFAULT_SETTINGS, ...data };
-      saveLocalSettings(merged);
-      applySiteSettings(merged);
-    }
-  } catch {}
-}
-
-async function saveSettingsToCloud(cfg) {
-  try {
-    await fetch(SETTINGS_DB_URL, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cfg)
-    });
-  } catch {}
-}
-
-function loadLocalNews() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (Array.isArray(parsed) && parsed.length) return parsed;
-  } catch {}
-  return [...defaultNews];
-}
-
-function saveLocalNews(items) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
 }
 
 function classifyArticle(title, body, sourceName, hintCategory) {
   const text = `${title} ${body} ${sourceName}`.toLowerCase();
-  const yemenKeywords = ["اليمن", "يمني", "يمنية", "صنعاء", "عدن", "تعز", "مأرب", "حضرموت", "المكلا", "الحديدة", "إب", "ذمار", "شبوة", "لحج", "أبين", "المهرة", "سقطرى", "حجة", "عمران", "صعدة", "البيضاء", "الجوف", "الضالع", "ريمة"];
-  const arabKeywords = ["السعودية", "مصر", "الإمارات", "قطر", "الكويت", "البحرين", "عمان", "الأردن", "لبنان", "سوريا", "العراق", "فلسطين", "غزة", "السودان", "ليبيا", "تونس", "الجزائر", "المغرب", "موريتانيا", "الصومال", "جيبوتي", "جزر القمر", "عربي", "عربية", "الخليج"];
-  const arabSportKeywords = ["دوري روشن", "الدوري السعودي", "الدوري المصري", "الزمالك", "الأهلي", "الهلال", "النصر", "الاتحاد", "كأس العرب", "المنتخب السعودي", "منتخب مصر", "منتخب المغرب", "منتخب قطر", "منتخب الجزائر", "البطولة العربية", "دوري أبطال أفريقيا", "الدوري الإماراتي", "الدوري القطري"];
-  const sportKeywords = ["رياضة", "كرة القدم", "مباراة", "هدف", "بطولة", "دوري", "منتخب", "كأس", "مدرب", "لاعب", "فريق", "ريال مدريد", "برشلونة", "مانشستر", "ليفربول", "أرسنال", "بايرن", "باريس", "يوفنتوس", "إنتر", "ميلان", "تشيلسي", "دوري أبطال أوروبا", "كأس العالم", "فورمولا", "تنس", "سلة"];
+  const localKw = ["اليمن", "يمني", "يمنية", "صنعاء", "عدن", "تعز", "مأرب", "حضرموت", "المكلا", "الحديدة", "إب", "ذمار", "شبوة", "لحج", "أبين", "المهرة", "يمن تيم", "يمن مونيتور", "يمن شباب"];
+  const arabKw = ["السعودية", "مصر", "الإمارات", "قطر", "الكويت", "البحرين", "عمان", "الأردن", "لبنان", "سوريا", "العراق", "فلسطين", "غزة", "السودان", "ليبيا", "تونس", "الجزائر", "المغرب", "عربي", "عربية", "الخليج", "كووورة", "في الجول", "يلا كورة", "رياضة"];
+  const sportKw = ["رياضة", "كرة القدم", "مباراة", "هدف", "بطولة", "دوري", "منتخب", "كأس", "مدرب", "لاعب", "فريق", "ريال مدريد", "برشلونة", "مانشستر", "ليفربول", "أرسنال", "بايرن", "كووورة", "في الجول", "يلا كورة", "السبورت", "سوفا سكور", "فلاش سكور", "bein", "tod", "يمن تيم", "يمن مونيتور", "رياضة"];
+  const cultureKw = ["ثقافة", "فن", "فنية", "سينما", "مسرح", "رواية", "شعر", "كتاب", "أدب", "تراث", "موسيقى", "معرض", "منوعات", "شاهد", "shahid", "تكنولوجيا", "صحة", "سفر"];
 
-  const isYemen = yemenKeywords.some((k) => text.includes(k));
-  const isArab = arabKeywords.some((k) => text.includes(k));
-  const isSport = sportKeywords.some((k) => text.includes(k));
-  const isArabSport = arabSportKeywords.some((k) => text.includes(k));
+  if (hintCategory && ["سياسة محلية", "سياسة عربية", "سياسة دولية", "رياضة محلية", "رياضة عربية", "رياضة دولية", "منوعات وثقافة"].includes(hintCategory)) return hintCategory;
+  const isLocal = localKw.some((k) => text.includes(k));
+  const isArab = arabKw.some((k) => text.includes(k));
+  const isSport = sportKw.some((k) => text.includes(k));
+  const isCulture = cultureKw.some((k) => text.includes(k));
 
-  if (isYemen && isSport) return "رياضة محلية";
-  if (isYemen) return "محلية";
-  if (isSport && (isArab || isArabSport)) return "رياضة عربية";
-  if (isSport) return "رياضة دولية";
-  if (hintCategory === "رياضة محلية" || hintCategory === "رياضة عربية" || hintCategory === "رياضة دولية") return hintCategory;
-  if (isArab) return "عربية";
-  if (hintCategory && hintCategory !== "تلقائي") return hintCategory;
-  return "دولية";
+  if (isSport) {
+    if (isLocal) return "رياضة محلية";
+    if (isArab) return "رياضة عربية";
+    return "رياضة دولية";
+  }
+  if (isCulture) return "منوعات وثقافة";
+  if (isLocal) return "سياسة محلية";
+  if (isArab) return "سياسة عربية";
+  return "سياسة دولية";
+}
+
+function matchesCurrentWindowAndSub(itemCategory) {
+  const cat = classifyArticle(itemCategory, "", "", itemCategory);
+  if (activeWindow === "politics") {
+    if (!cat.startsWith("سياسة")) return false;
+    if (activeSubCat === "محلية") return cat === "سياسة محلية";
+    if (activeSubCat === "عربي") return cat === "سياسة عربية";
+    if (activeSubCat === "دولية") return cat === "سياسة دولية";
+    return true;
+  }
+  if (activeWindow === "sports") {
+    if (!cat.startsWith("رياضة")) return false;
+    if (activeSubCat === "محلية") return cat === "رياضة محلية";
+    if (activeSubCat === "عربي") return cat === "رياضة عربية";
+    if (activeSubCat === "دولية") return cat === "رياضة دولية";
+    return true;
+  }
+  return cat === "منوعات وثقافة";
+}
+
+function getCategoryBadgeClass(cat) {
+  const map = { "سياسة محلية": "cat-pol-local", "سياسة عربية": "cat-pol-arab", "سياسة دولية": "cat-pol-intl", "رياضة محلية": "cat-sp-local", "رياضة عربية": "cat-sp-arab", "رياضة دولية": "cat-sp-intl", "منوعات وثقافة": "cat-culture" };
+  return map[cat] || "cat-pol-intl";
+}
+
+function renderWindowHeader() {
+  mainWindowsNav.querySelectorAll(".win-tab").forEach((b) => b.classList.toggle("active", b.dataset.win === activeWindow));
+  windowBanner.className = `window-banner banner-${activeWindow}`;
+
+  if (activeWindow === "politics") {
+    subCategoriesBar.classList.remove("hidden");
+    subCategoriesBar.innerHTML = ["الكل", "محلية", "عربي", "دولية"].map((s) => {
+      const ico = s === "محلية" ? "🏛️" : s === "عربي" ? "🕌" : s === "دولية" ? "🌐" : "📌";
+      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}">${ico} ${s === "الكل" ? "جميع السياسية" : "سياسة " + s}</button>`;
+    }).join("");
+    bannerIcon.textContent = "🏛️";
+    bannerTitle.textContent = activeSubCat === "الكل" ? "النافذة السياسية — جميع الأقسام السياسية" : `النافذة السياسية — قسم ${activeSubCat}`;
+    bannerDesc.textContent = "متابعة رسمية للشؤون والملفات السياسية بأقسامها: محلية، عربي، ودولية.";
+  } else if (activeWindow === "sports") {
+    subCategoriesBar.classList.remove("hidden");
+    subCategoriesBar.innerHTML = ["الكل", "محلية", "عربي", "دولية"].map((s) => {
+      const ico = s === "محلية" ? "🏟️" : s === "عربي" ? "🏆" : s === "دولية" ? "🌍" : "⚽";
+      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}">${ico} ${s === "الكل" ? "جميع الرياضية" : "رياضة " + s}</button>`;
+    }).join("");
+    bannerIcon.textContent = "⚽";
+    bannerTitle.textContent = activeSubCat === "الكل" ? "النافذة الرياضية — جميع الأقسام الرياضية" : `النافذة الرياضية — قسم ${activeSubCat}`;
+    bannerDesc.textContent = "تغطية رياضية متكاملة (محلية، عربي، دولية) من كووورة، في الجول، يلا كورة، يمن تيم، يمن مونيتور، رياضة، السبورت، سوفا سكور، فلاش سكور، TOD، والجزيرة نت.";
+  } else {
+    subCategoriesBar.classList.add("hidden");
+    subCategoriesBar.innerHTML = "";
+    bannerIcon.textContent = "🎭";
+    bannerTitle.textContent = "نافذة منوعات وثقافة";
+    bannerDesc.textContent = "إضاءات فكرية وفنية وثقافية ومجتمعية ومحتوى متنوع.";
+  }
+}
+
+function getLikesCount(id) { return (engageState.extraLikes[id] || 0) + (engageState.likedIds.includes(id) ? 1 : 0); }
+function getCommentsList(id) { return Array.isArray(engageState.comments[id]) ? engageState.comments[id] : []; }
+
+function renderTicker() {
+  const br = newsList.filter((i) => i.breaking);
+  breakingTicker.textContent = br.length ? br.map((b) => `• ${b.title}`).join("      ") : newsList.slice(0, 6).map((n) => `• [${n.category}] ${n.title}`).join("      ");
+}
+
+function renderFeed() {
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = newsList.filter((item) => {
+    const cat = classifyArticle(item.title, item.body, item.source, item.category);
+    const matchesSearch = !q || String(item.title || "").toLowerCase().includes(q) || String(item.body || "").toLowerCase().includes(q) || String(item.source || "").toLowerCase().includes(q) || cat.toLowerCase().includes(q);
+    return matchesCurrentWindowAndSub(cat) && matchesSearch;
+  });
+
+  if (!filtered.length) {
+    newsFeed.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#475569;padding:30px;font-weight:700;">لا توجد أخبار منشورة في هذا القسم حالياً.</p>`;
+    return;
+  }
+
+  newsFeed.innerHTML = filtered.map((item) => {
+    const idStr = String(item.id);
+    const cat = classifyArticle(item.title, item.body, item.source, item.category);
+    const liked = engageState.likedIds.includes(idStr);
+    const likesCnt = getLikesCount(idStr);
+    const commentsCnt = getCommentsList(idStr).length;
+    const imgBlock = isSafeImageSrc(item.image)
+      ? `<div class="news-img-container"><img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.closest('.news-img-container').style.display='none'" /><div class="img-watermark-bar"><span>🎙️</span><span>${escapeHtml(KAYAN_TAG)}</span></div></div>`
+      : "";
+    const adminControls = isUnlocked ? `<div class="admin-actions"><button class="btn-edit" data-edit="${escapeAttr(idStr)}" type="button">تعديل</button><button class="btn-delete" data-del="${escapeAttr(idStr)}" type="button">حذف</button></div>` : "";
+    return `<article class="news-card" data-open="${escapeAttr(idStr)}">${imgBlock}<div class="news-body-wrap"><div class="news-meta"><span class="news-cat ${getCategoryBadgeClass(cat)}">${escapeHtml(cat)}</span><span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span><span>${escapeHtml(item.createdAt || "")}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><div class="article-signature-box">🎙️ ${escapeHtml(KAYAN_TAG)}</div><div class="card-engagement"><button type="button" class="card-like-btn ${liked ? "liked" : ""}" data-like="${escapeAttr(idStr)}">❤️ إعجاب (${likesCnt})</button><span class="card-comment-hint">💬 تعليقات (${commentsCnt})</span></div>${adminControls}</div></article>`;
+  }).join("");
 }
 
 function extractImageFromEntry(entry) {
@@ -279,13 +258,11 @@ function extractImageFromEntry(entry) {
 }
 
 async function fetchSingleFeed(feed) {
-  const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
-  const res = await fetch(api);
+  const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`);
   if (!res.ok) throw new Error("Feed fetch failed");
   const data = await res.json();
   const entries = Array.isArray(data.items) ? data.items.slice(0, 5) : [];
   const sourceTitle = (feed.name || data.feed?.title || "مصدر إخباري").trim();
-
   return entries.map((entry, idx) => {
     const title = cleanHtmlText(entry.title);
     const body = cleanHtmlText(entry.description || entry.content || "");
@@ -297,39 +274,30 @@ async function fetchSingleFeed(feed) {
     return {
       id: `rss_${btoa(unescape(encodeURIComponent(`${sourceTitle}_${title.slice(0, 40)}_${idx}`))).replace(/[^a-zA-Z0-9]/g, "").slice(0, 24)}`,
       timestamp, title, source: sourceTitle, category, breaking: false, image, link,
-      body: body || "اضغط لقراءة التفاصيل الكاملة للخبر.",
-      createdAt: new Date(timestamp).toLocaleString("ar-EG")
+      body: body || "اضغط لقراءة التفاصيل الكاملة للخبر.", createdAt: new Date(timestamp).toLocaleString("ar-EG")
     };
   }).filter((item) => item.title.length > 3);
 }
 
 async function runAutomaticFeeds(force = false) {
   const lastRun = Number(localStorage.getItem(AUTO_FETCH_KEY) || 0);
-  if (!force && Date.now() - lastRun < 15 * 60 * 1000 && newsList.length > 1) {
-    autoSyncStatus.textContent = "الأخبار محدثة";
-    return;
-  }
-  autoSyncStatus.textContent = "جاري تحديث الأخبار من المصادر...";
+  if (!force && Date.now() - lastRun < 15 * 60 * 1000 && newsList.length > 3) { autoSyncStatus.textContent = "الأخبار محدثة"; return; }
+  autoSyncStatus.textContent = "جاري تحديث الأخبار...";
   const existingKeys = new Set(newsList.map((n) => `${n.title.trim()}|${n.source || ""}`));
-  const newlyCollected = [];
+  const newly = [];
   for (const feed of TRUSTED_FEEDS) {
     try {
       const items = await fetchSingleFeed(feed);
       for (const item of items) {
         const key = `${item.title.trim()}|${item.source || ""}`;
-        if (!existingKeys.has(key)) {
-          existingKeys.add(key);
-          newlyCollected.push(item);
-        }
+        if (!existingKeys.has(key)) { existingKeys.add(key); newly.push(item); }
       }
     } catch {}
   }
-  if (newlyCollected.length) {
-    newsList = [...newlyCollected, ...newsList].sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 120);
-    saveLocalNews(newsList);
-    renderTicker();
-    renderFeed();
-    for (const item of newlyCollected.slice(0, 20)) await saveItemToCloud(item);
+  if (newly.length) {
+    newsList = [...newly, ...newsList].sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 150);
+    saveLocalNews(newsList); renderTicker(); renderFeed();
+    for (const item of newly.slice(0, 25)) await saveItemToCloud(item);
   }
   localStorage.setItem(AUTO_FETCH_KEY, String(Date.now()));
   autoSyncStatus.textContent = `آخر تحديث: ${new Date().toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`;
@@ -341,14 +309,12 @@ async function syncFromCloud() {
     if (!res.ok) return;
     const data = await res.json();
     if (!data) return;
-    const cloudList = Array.isArray(data) ? data.filter(Boolean) : Object.entries(data).map(([key, val]) => ({ id: key, ...val }));
+    const cloudList = Array.isArray(data) ? data.filter(Boolean) : Object.entries(data).map(([k, v]) => ({ id: k, ...v }));
     if (cloudList.length) {
-      const mergedMap = new Map();
-      [...cloudList, ...newsList].forEach((item) => { if (item && item.id) mergedMap.set(String(item.id), item); });
-      newsList = Array.from(mergedMap.values()).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 120);
-      saveLocalNews(newsList);
-      renderTicker();
-      renderFeed();
+      const map = new Map();
+      [...cloudList, ...newsList].forEach((i) => { if (i && i.id) map.set(String(i.id), i); });
+      newsList = Array.from(map.values()).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 150);
+      saveLocalNews(newsList); renderTicker(); renderFeed();
     }
   } catch {}
 }
@@ -363,261 +329,314 @@ async function saveItemToCloud(item) {
 }
 
 async function deleteItemFromCloud(id) {
+  try { await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(id))}.json`, { method: "DELETE" }); } catch {}
+}
+
+async function syncSettingsFromCloud() {
   try {
-    await fetch(`https://kayan-news-575ab-default-rtdb.firebaseio.com/news/${encodeURIComponent(String(id))}.json`, { method: "DELETE" });
+    const res = await fetch(SETTINGS_DB_URL);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data === "object") { const m = { ...DEFAULT_SETTINGS, ...data }; saveLocalSettings(m); applySiteSettings(m); }
   } catch {}
 }
 
-function renderTicker() {
-  const breakingItems = newsList.filter((item) => item.breaking);
-  breakingTicker.textContent = breakingItems.length
-    ? breakingItems.map((b) => `• ${b.title}`).join("      ")
-    : newsList.slice(0, 5).map((n) => `• [${n.category}] ${n.title}`).join("      ");
+async function saveSettingsToCloud(cfg) {
+  try {
+    if (String(cfg.logoUrl || "").length > 250000) return;
+    await fetch(SETTINGS_DB_URL, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cfg) });
+  } catch {}
 }
 
-function renderFeed() {
-  const q = searchQuery.trim().toLowerCase();
-  const filtered = newsList.filter((item) => {
-    const matchesCat = currentCategory === "الكل" || item.category === currentCategory;
-    const matchesSearch = !q || String(item.title || "").toLowerCase().includes(q) || String(item.body || "").toLowerCase().includes(q) || String(item.source || "").toLowerCase().includes(q);
-    return matchesCat && matchesSearch;
-  });
-
-  if (!filtered.length) {
-    newsFeed.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#64748b;padding:28px;">لا توجد أخبار في قسم "${escapeHtml(currentCategory)}" حالياً.</p>`;
-    return;
-  }
-
-  newsFeed.innerHTML = filtered.map((item) => {
-    const imgBlock = isSafeImageSrc(item.image)
-      ? `<div class="news-img-container"><img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.closest('.news-img-container').style.display='none'" /><div class="img-watermark-bar"><span class="wm-icon">🎙️</span><span>${escapeHtml(KAYAN_TAG)}</span></div></div>`
-      : "";
-    const adminControls = isUnlocked
-      ? `<div class="admin-actions"><button class="btn-edit" data-edit="${escapeAttr(String(item.id))}" type="button">تعديل</button><button class="btn-delete" data-del="${escapeAttr(String(item.id))}" type="button">حذف</button></div>`
-      : "";
-    return `<article class="news-card" data-open="${escapeAttr(String(item.id))}">${imgBlock}<div class="news-body-wrap"><div class="news-meta"><span class="news-cat">${escapeHtml(item.category || "دولية")}</span><span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span><span>${escapeHtml(item.createdAt || "")}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><div class="article-signature-box">🎙️ ${escapeHtml(KAYAN_TAG)}</div>${adminControls}</div></article>`;
-  }).join("");
+function applySiteSettings(cfg) {
+  siteSettings = { ...DEFAULT_SETTINGS, ...(cfg || {}) };
+  siteTitleText.textContent = siteSettings.siteName;
+  siteSubtitleText.textContent = siteSettings.subtitle;
+  document.title = `${siteSettings.siteName} | ${siteSettings.subtitle}`;
+  const hex = /^#[0-9a-fA-F]{6}$/.test(siteSettings.accentColor) ? siteSettings.accentColor : DEFAULT_SETTINGS.accentColor;
+  document.documentElement.style.setProperty("--accent", hex);
+  document.documentElement.style.setProperty("--accent-dark", hex);
+  const hasLogo = isSafeImageSrc(siteSettings.logoUrl);
+  customLogoImg.src = hasLogo ? siteSettings.logoUrl.trim() : "";
+  customLogoImg.classList.toggle("hidden", !hasLogo);
+  defaultLogoSvg.classList.toggle("hidden", hasLogo);
+  footerAboutText.textContent = siteSettings.aboutText;
+  footerOverviewText.textContent = siteSettings.overviewText;
+  footerEmailText.textContent = siteSettings.emailText;
+  footerEmailLink.href = `mailto:${siteSettings.emailText}`;
+  footerOrgText.textContent = siteSettings.orgText;
+  footerCopyrightText.textContent = `© 2026 ${siteSettings.siteName} | ${siteSettings.subtitle} — جميع الحقوق محفوظة`;
+  el("cfgSiteName").value = siteSettings.siteName;
+  el("cfgSubtitle").value = siteSettings.subtitle;
+  el("cfgLogoUrl").value = siteSettings.logoUrl;
+  el("cfgAccentColor").value = hex;
+  el("accentHexLabel").textContent = hex;
+  el("cfgAboutText").value = siteSettings.aboutText;
+  el("cfgOverviewText").value = siteSettings.overviewText;
+  el("cfgEmailText").value = siteSettings.emailText;
+  el("cfgSocialHandle").value = siteSettings.socialHandle;
+  el("cfgOrgText").value = siteSettings.orgText;
 }
 
-function startEditingNews(id) {
-  const target = newsList.find((n) => String(n.id) === String(id));
-  if (!target) return;
-  editingId = target.id;
-  editNewsIdInput.value = target.id;
-  newsTitleInput.value = target.title || "";
-  newsSourceInput.value = target.source || siteSettings.siteName;
-  newsImageInput.value = target.image || "";
-  updateNewsPreview(target.image || "");
-  newsCategorySelect.value = target.category || "محلية";
-  isBreakingCheckbox.checked = Boolean(target.breaking);
-  newsBodyInput.value = target.body || "";
-  newsFormTitle.textContent = "تعديل الخبر المحدد";
-  submitNewsBtn.textContent = "حفظ التعديلات";
-  cancelEditBtn.classList.remove("hidden");
-  adminPanel.classList.remove("hidden");
-  adminPanel.scrollIntoView({ behavior: "smooth" });
+function renderSubStatus() {
+  subStatusText.textContent = subState.subscribed
+    ? `أنت مشترك ومتابع في كيان نيوز${subState.contact ? " (" + subState.contact + ")" : ""} — ستصلك التحديثات.`
+    : "اشترك لتصلك آخر الأخبار والتحديثات أولاً بأول.";
+  subscribeBtn.textContent = subState.subscribed ? "✓ مشترك" : "اشتراك ومتابعة";
 }
 
-function resetNewsForm() {
-  editingId = null;
-  editNewsIdInput.value = "";
-  newsForm.reset();
-  newsImageFileInput.value = "";
-  updateNewsPreview("");
-  newsFormTitle.textContent = "إضافة خبر جديد";
-  submitNewsBtn.textContent = "نشر الخبر";
-  cancelEditBtn.classList.add("hidden");
+function toggleLike(idStr) {
+  const idx = engageState.likedIds.indexOf(idStr);
+  if (idx >= 0) engageState.likedIds.splice(idx, 1);
+  else engageState.likedIds.push(idStr);
+  saveEngageState(engageState);
+  renderFeed();
+  if (currentModalNewsId === idStr) renderModalEngagement(idStr);
 }
 
-function openArticleModal(id) {
-  const item = newsList.find((n) => String(n.id) === String(id));
+function renderCommentsList(idStr) {
+  const list = getCommentsList(idStr);
+  el("modalCommentsCount").textContent = String(list.length);
+  el("commentsList").innerHTML = list.length
+    ? list.map((c) => `<div class="comment-item"><div class="comment-meta"><span>${escapeHtml(c.author)}</span><span>${escapeHtml(c.date)}</span></div><div class="comment-body">${escapeHtml(c.text)}</div></div>`).join("")
+    : `<p style="color:#64748b;font-size:0.86rem;">لا توجد تعليقات بعد؛ كن أول من يشارك برأيه.</p>`;
+}
+
+function renderModalEngagement(idStr) {
+  const liked = engageState.likedIds.includes(idStr);
+  const btn = el("modalLikeBtn");
+  btn.classList.toggle("liked", liked);
+  el("modalLikeCount").textContent = String(getLikesCount(idStr));
+  renderCommentsList(idStr);
+}
+
+function openArticleModal(idStr) {
+  const item = newsList.find((n) => String(n.id) === String(idStr));
   if (!item) return;
-  modalTitle.textContent = item.title || "";
-  modalBody.textContent = item.body || "";
-  modalCat.textContent = item.category || "دولية";
-  modalSource.textContent = item.source ? `المصدر: ${item.source}` : "";
-  modalDate.textContent = item.createdAt || "";
+  currentModalNewsId = String(item.id);
+  const cat = classifyArticle(item.title, item.body, item.source, item.category);
+  el("modalTitle").textContent = item.title || "";
+  el("modalBody").textContent = item.body || "";
+  el("modalCat").textContent = cat;
+  el("modalCat").className = `news-cat ${getCategoryBadgeClass(cat)}`;
+  el("modalSource").textContent = item.source ? `المصدر: ${item.source}` : "";
+  el("modalDate").textContent = item.createdAt || "";
   const hasImg = isSafeImageSrc(item.image);
-  modalImg.src = hasImg ? item.image : "";
-  modalImg.alt = hasImg ? (item.title || "") : "";
-  modalImgWrap.classList.toggle("hidden", !hasImg);
+  el("modalImg").src = hasImg ? item.image : "";
+  el("modalImgWrap").classList.toggle("hidden", !hasImg);
   const hasLink = isSafeExternalUrl(item.link);
-  modalLink.href = hasLink ? item.link : "#";
-  modalLink.classList.toggle("hidden", !hasLink);
-  articleModal.classList.remove("hidden");
+  el("modalLink").href = hasLink ? item.link : "#";
+  el("modalLink").classList.toggle("hidden", !hasLink);
+  renderModalEngagement(currentModalNewsId);
+  el("articleModal").classList.remove("hidden");
 }
 
-function closeArticleModal() { articleModal.classList.add("hidden"); }
+function closeArticleModal() { currentModalNewsId = null; el("articleModal").classList.add("hidden"); }
 function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t ?? ""; return d.innerHTML; }
 function escapeAttr(t) { return escapeHtml(t).replace(/"/g, "&quot;"); }
 function cleanHtmlText(h) { const d = document.createElement("div"); d.innerHTML = h || ""; return (d.textContent || d.innerText || "").replace(/\s+/g, " ").trim(); }
 
-newsImageFileInput.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  try {
-    const compressed = await compressImageFile(file, 780, 0.68);
-    newsImageInput.value = compressed;
-    updateNewsPreview(compressed);
-  } catch { alert("تعذر قراءة الصورة المختارة من المعرض."); }
+async function shareTextOrLink(title, text, url) {
+  const payload = `${title}\n${text}\n${url}\n${KAYAN_TAG}`;
+  if (navigator.share) {
+    try { await navigator.share({ title, text: `${text}\n${KAYAN_TAG}`, url }); return; } catch {}
+  }
+  try { await navigator.clipboard.writeText(payload); alert("تم نسخ آخر الأخبار والتحديثات مع رابط الموقع بنجاح!"); }
+  catch { prompt("انسخ النص والرابط التالي:", payload); }
+}
+
+subscribeBtn.addEventListener("click", async () => {
+  const contact = subscriberContactInput.value.trim() || subState.contact;
+  if ("Notification" in window && Notification.permission === "default") {
+    try { await Notification.requestPermission(); } catch {}
+  }
+  subState = { subscribed: true, contact };
+  saveSubState(subState);
+  renderSubStatus();
+  alert("تم اشتراكك ومتابعتك في منصة كيان نيوز (KAYAN NEWS) بنجاح!");
 });
 
-newsImageInput.addEventListener("input", (e) => updateNewsPreview(e.target.value.trim()));
-clearNewsImgBtn.addEventListener("click", () => { newsImageFileInput.value = ""; newsImageInput.value = ""; updateNewsPreview(""); });
-
-cfgLogoFileInput.addEventListener("change", async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  try {
-    cfgLogoUrlInput.value = await compressImageFile(file, 220, 0.75);
-    settingsStatus.textContent = "تم اختيار الشعار من المعرض، اضغط «حفظ إعدادات الموقع» لتثبيته.";
-  } catch { settingsStatus.textContent = "تعذر تحميل صورة الشعار."; }
+sendLatestDigestBtn.addEventListener("click", async () => {
+  const topThree = newsList.slice(0, 3).map((n, i) => `${i + 1}. ${n.title} (${n.source || siteSettings.siteName})`).join("\n");
+  await shareTextOrLink("آخر أخبار وتحديثات كيان نيوز | KAYAN NEWS", topThree || "تابع أحدث الأخبار السياسية والرياضية والثقافية.", SITE_URL);
 });
 
-clearLogoBtn.addEventListener("click", () => {
-  cfgLogoFileInput.value = "";
-  cfgLogoUrlInput.value = "";
-  settingsStatus.textContent = "تم تفريغ الشعار المخصص؛ اضغط «حفظ إعدادات الموقع» للعودة للشعار الافتراضي.";
+mainWindowsNav.addEventListener("click", (e) => {
+  const btn = e.target.closest(".win-tab");
+  if (!btn) return;
+  activeWindow = btn.dataset.win;
+  activeSubCat = "الكل";
+  renderWindowHeader();
+  renderFeed();
 });
+
+subCategoriesBar.addEventListener("click", (e) => {
+  const btn = e.target.closest(".sub-cat-btn");
+  if (!btn) return;
+  activeSubCat = btn.dataset.sub;
+  renderWindowHeader();
+  renderFeed();
+});
+
+searchInput.addEventListener("input", (e) => { searchQuery = e.target.value; renderFeed(); });
+refreshAutoBtn.addEventListener("click", () => runAutomaticFeeds(true));
 
 toggleAdminBtn.addEventListener("click", () => {
   if (!isUnlocked) {
     const code = prompt("أدخل رمز الدخول للوحة الإدارة:");
     if (code !== ADMIN_PASSCODE) { if (code !== null) alert("رمز الدخول غير صحيح."); return; }
-    isUnlocked = true;
-    renderFeed();
+    isUnlocked = true; renderFeed();
   }
   adminPanel.classList.toggle("hidden");
 });
 
-lockAdminBtn.addEventListener("click", () => { isUnlocked = false; resetNewsForm(); adminPanel.classList.add("hidden"); renderFeed(); });
-refreshAutoBtn.addEventListener("click", () => runAutomaticFeeds(true));
-cancelEditBtn.addEventListener("click", resetNewsForm);
-cfgAccentColorInput.addEventListener("input", (e) => { accentHexLabel.textContent = e.target.value; });
+lockAdminBtn.addEventListener("click", () => { isUnlocked = false; adminPanel.classList.add("hidden"); renderFeed(); });
 
-siteSettingsForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!isUnlocked) return;
-  const rawLogo = cfgLogoUrlInput.value.trim();
-  const updatedCfg = {
-    siteName: cfgSiteNameInput.value.trim() || DEFAULT_SETTINGS.siteName,
-    subtitle: cfgSubtitleInput.value.trim() || DEFAULT_SETTINGS.subtitle,
-    logoUrl: isSafeImageSrc(rawLogo) ? rawLogo : "",
-    accentColor: cfgAccentColorInput.value || DEFAULT_SETTINGS.accentColor,
-    aboutText: cfgAboutTextInput.value.trim() || DEFAULT_SETTINGS.aboutText,
-    overviewText: cfgOverviewTextInput.value.trim() || DEFAULT_SETTINGS.overviewText,
-    handleText: cfgHandleTextInput.value.trim() || DEFAULT_SETTINGS.handleText,
-    orgText: cfgOrgTextInput.value.trim() || DEFAULT_SETTINGS.orgText,
-    whatsappUrl: isSafeExternalUrl(cfgWhatsappUrlInput.value.trim()) ? cfgWhatsappUrlInput.value.trim() : DEFAULT_SETTINGS.whatsappUrl,
-    whatsappLabel: cfgWhatsappLabelInput.value.trim() || DEFAULT_SETTINGS.whatsappLabel
-  };
-  applySiteSettings(updatedCfg);
-  saveLocalSettings(updatedCfg);
-  if (updatedCfg.logoUrl.length < 250000) await saveSettingsToCloud(updatedCfg);
-  settingsStatus.textContent = "تم حفظ إعدادات الموقع وتحديث الشكل والتواصل بنجاح.";
-});
-
-resetSettingsBtn.addEventListener("click", async () => {
-  if (!isUnlocked) return;
-  applySiteSettings(DEFAULT_SETTINGS);
-  saveLocalSettings(DEFAULT_SETTINGS);
-  await saveSettingsToCloud(DEFAULT_SETTINGS);
-  settingsStatus.textContent = "تمت استعادة الإعدادات الافتراضية.";
-});
-
-categoryNav.addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-cat]");
-  if (!btn) return;
-  currentCategory = btn.dataset.cat;
-  categoryNav.querySelectorAll("button").forEach((b) => b.classList.remove("active"));
-  btn.classList.add("active");
-  renderFeed();
-});
-
-searchInput.addEventListener("input", (e) => { searchQuery = e.target.value; renderFeed(); });
-
-newsForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!isUnlocked) return;
-  const title = newsTitleInput.value.trim();
-  const source = newsSourceInput.value.trim() || siteSettings.siteName;
-  const image = newsImageInput.value.trim();
-  const category = newsCategorySelect.value;
-  const breaking = isBreakingCheckbox.checked;
-  const body = newsBodyInput.value.trim();
-  if (!title || !body) return;
-
-  if (editingId) {
-    newsList = newsList.map((item) => {
-      if (String(item.id) !== String(editingId)) return item;
-      const updated = { ...item, title, source, image: isSafeImageSrc(image) ? image : "", category, breaking, body };
-      saveItemToCloud(updated);
-      return updated;
-    });
-    saveLocalNews(newsList);
-    renderTicker();
-    renderFeed();
-    resetNewsForm();
-    return;
-  }
-
-  const now = Date.now();
-  const newItem = {
-    id: `manual_${now}`, timestamp: now, title, source,
-    image: isSafeImageSrc(image) ? image : "", category, breaking, link: "", body,
-    createdAt: new Date(now).toLocaleString("ar-EG")
-  };
-  newsList = [newItem, ...newsList];
-  saveLocalNews(newsList);
-  renderTicker();
-  renderFeed();
-  await saveItemToCloud(newItem);
-  resetNewsForm();
-});
-
-rssForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!isUnlocked) return;
-  const feedUrl = rssUrlInput.value.trim();
-  const sourceName = rssSourceNameInput.value.trim();
-  const category = rssCategorySelect.value;
-  if (!isSafeExternalUrl(feedUrl)) { rssStatus.textContent = "يرجى إدخال رابط RSS صحيح يبدأ بـ http أو https."; return; }
-  rssStatus.textContent = "جاري سحب الأخبار...";
+el("newsImageFile").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
   try {
-    const items = await fetchSingleFeed({ name: sourceName, url: feedUrl, category, hint: category === "تلقائي" ? "دولية" : category });
-    if (!items.length) { rssStatus.textContent = "لم يتم العثور على عناصر في هذا الرابط."; return; }
+    const c = await compressImageFile(f, 780, 0.68);
+    el("newsImage").value = c;
+    el("newsImgPreview").src = c;
+    el("newsImgPreviewWrap").classList.remove("hidden");
+    el("clearNewsImgBtn").classList.remove("hidden");
+  } catch { alert("تعذر قراءة الصورة."); }
+});
+
+el("clearNewsImgBtn").addEventListener("click", () => {
+  el("newsImageFile").value = ""; el("newsImage").value = ""; el("newsImgPreview").src = "";
+  el("newsImgPreviewWrap").classList.add("hidden"); el("clearNewsImgBtn").classList.add("hidden");
+});
+
+el("cfgLogoFile").addEventListener("change", async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  try { el("cfgLogoUrl").value = await compressImageFile(f, 220, 0.75); el("settingsStatus").textContent = "تم اختيار الشعار، اضغط حفظ الإعدادات."; }
+  catch { el("settingsStatus").textContent = "تعذر تحميل الشعار."; }
+});
+
+el("clearLogoBtn").addEventListener("click", () => { el("cfgLogoFile").value = ""; el("cfgLogoUrl").value = ""; });
+el("cfgAccentColor").addEventListener("input", (e) => { el("accentHexLabel").textContent = e.target.value; });
+
+el("siteSettingsForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!isUnlocked) return;
+  const rawLogo = el("cfgLogoUrl").value.trim();
+  const updated = {
+    siteName: el("cfgSiteName").value.trim() || DEFAULT_SETTINGS.siteName,
+    subtitle: el("cfgSubtitle").value.trim() || DEFAULT_SETTINGS.subtitle,
+    logoUrl: isSafeImageSrc(rawLogo) ? rawLogo : "",
+    accentColor: el("cfgAccentColor").value || DEFAULT_SETTINGS.accentColor,
+    aboutText: el("cfgAboutText").value.trim() || DEFAULT_SETTINGS.aboutText,
+    overviewText: el("cfgOverviewText").value.trim() || DEFAULT_SETTINGS.overviewText,
+    emailText: el("cfgEmailText").value.trim() || DEFAULT_SETTINGS.emailText,
+    socialHandle: el("cfgSocialHandle").value.trim() || DEFAULT_SETTINGS.socialHandle,
+    orgText: el("cfgOrgText").value.trim() || DEFAULT_SETTINGS.orgText
+  };
+  applySiteSettings(updated); saveLocalSettings(updated); await saveSettingsToCloud(updated);
+  el("settingsStatus").textContent = "تم حفظ إعدادات الموقع بنجاح.";
+});
+
+el("resetSettingsBtn").addEventListener("click", async () => {
+  if (!isUnlocked) return;
+  applySiteSettings(DEFAULT_SETTINGS); saveLocalSettings(DEFAULT_SETTINGS); await saveSettingsToCloud(DEFAULT_SETTINGS);
+  el("settingsStatus").textContent = "تمت استعادة الإعدادات الافتراضية.";
+});
+
+el("newsForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!isUnlocked) return;
+  const title = el("newsTitle").value.trim();
+  const body = el("newsBody").value.trim();
+  if (!title || !body) return;
+  const item = {
+    id: editingId || `manual_${Date.now()}`,
+    timestamp: Date.now(),
+    title,
+    source: el("newsSource").value.trim() || siteSettings.siteName,
+    image: isSafeImageSrc(el("newsImage").value.trim()) ? el("newsImage").value.trim() : "",
+    category: el("newsCategory").value,
+    breaking: el("isBreaking").checked,
+    link: "",
+    body,
+    createdAt: new Date().toLocaleString("ar-EG")
+  };
+  newsList = editingId ? newsList.map((n) => String(n.id) === String(editingId) ? item : n) : [item, ...newsList];
+  editingId = null; el("editNewsId").value = ""; el("newsForm").reset(); el("clearNewsImgBtn").click();
+  saveLocalNews(newsList); renderTicker(); renderFeed(); await saveItemToCloud(item);
+});
+
+el("rssForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!isUnlocked) return;
+  const url = el("rssUrl").value.trim();
+  if (!isSafeExternalUrl(url)) { el("rssStatus").textContent = "أدخل رابط RSS صحيح."; return; }
+  el("rssStatus").textContent = "جاري سحب الأخبار...";
+  try {
+    const cat = el("rssCategory").value;
+    const items = await fetchSingleFeed({ name: el("rssSourceName").value.trim(), url, category: cat, hint: cat === "تلقائي" ? "سياسة عربية" : cat });
+    if (!items.length) { el("rssStatus").textContent = "لا توجد عناصر في المصدر."; return; }
     newsList = [...items, ...newsList].sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
-    saveLocalNews(newsList);
-    renderTicker();
-    renderFeed();
-    for (const item of items) await saveItemToCloud(item);
-    rssStatus.textContent = `تمت إضافة ${items.length} أخبار بنجاح.`;
-    rssForm.reset();
-  } catch { rssStatus.textContent = "تعذر جلب الرابط حالياً؛ تأكد من صحة رابط RSS أو الاتصال."; }
+    saveLocalNews(newsList); renderTicker(); renderFeed();
+    for (const it of items) await saveItemToCloud(it);
+    el("rssStatus").textContent = `تمت إضافة ${items.length} أخبار.`; el("rssForm").reset();
+  } catch { el("rssStatus").textContent = "تعذر جلب الرابط حالياً."; }
 });
 
 newsFeed.addEventListener("click", async (e) => {
+  const likeBtn = e.target.closest("button[data-like]");
+  if (likeBtn) { e.stopPropagation(); toggleLike(likeBtn.dataset.like); return; }
   const editBtn = e.target.closest("button[data-edit]");
-  if (editBtn && isUnlocked) { e.stopPropagation(); startEditingNews(editBtn.dataset.edit); return; }
+  if (editBtn && isUnlocked) {
+    e.stopPropagation();
+    const target = newsList.find((n) => String(n.id) === String(editBtn.dataset.edit));
+    if (!target) return;
+    editingId = target.id; el("newsTitle").value = target.title; el("newsSource").value = target.source || "";
+    el("newsImage").value = target.image || ""; el("newsCategory").value = target.category || "سياسة محلية";
+    el("isBreaking").checked = Boolean(target.breaking); el("newsBody").value = target.body || "";
+    adminPanel.classList.remove("hidden"); adminPanel.scrollIntoView({ behavior: "smooth" });
+    return;
+  }
   const delBtn = e.target.closest("button[data-del]");
   if (delBtn && isUnlocked) {
     e.stopPropagation();
     const id = delBtn.dataset.del;
-    newsList = newsList.filter((item) => String(item.id) !== String(id));
-    saveLocalNews(newsList);
-    renderTicker();
-    renderFeed();
-    await deleteItemFromCloud(id);
+    newsList = newsList.filter((n) => String(n.id) !== String(id));
+    saveLocalNews(newsList); renderTicker(); renderFeed(); await deleteItemFromCloud(id);
     return;
   }
   const card = e.target.closest("article[data-open]");
   if (card) openArticleModal(card.dataset.open);
 });
 
-closeModalBtn.addEventListener("click", closeArticleModal);
-articleModal.addEventListener("click", (e) => { if (e.target === articleModal) closeArticleModal(); });
+el("modalLikeBtn").addEventListener("click", () => { if (currentModalNewsId) toggleLike(currentModalNewsId); });
+el("modalShareArticleBtn").addEventListener("click", () => {
+  const item = newsList.find((n) => String(n.id) === String(currentModalNewsId));
+  if (item) shareTextOrLink(item.title, item.body, SITE_URL);
+});
+
+el("commentForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!currentModalNewsId) return;
+  const txt = el("commentTextInput").value.trim();
+  if (!txt) return;
+  const author = el("commentAuthorInput").value.trim() || "قارئ كيان";
+  const arr = getCommentsList(currentModalNewsId);
+  arr.unshift({ author, text: txt, date: new Date().toLocaleString("ar-EG") });
+  engageState.comments[currentModalNewsId] = arr;
+  saveEngageState(engageState);
+  el("commentTextInput").value = "";
+  renderCommentsList(currentModalNewsId);
+  renderFeed();
+});
+
+el("closeModalBtn").addEventListener("click", closeArticleModal);
+el("articleModal").addEventListener("click", (e) => { if (e.target === el("articleModal")) closeArticleModal(); });
 
 applySiteSettings(siteSettings);
+renderSubStatus();
+renderWindowHeader();
 renderTicker();
 renderFeed();
 syncSettingsFromCloud();
