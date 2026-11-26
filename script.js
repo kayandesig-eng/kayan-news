@@ -78,6 +78,19 @@ let editingId = null;
 let currentModalNewsId = null;
 
 const el = (id) => document.getElementById(id);
+const ICONS = {
+  politics: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 9 9-6 9 6M5 10h14M6 10v9m4-9v9m4-9v9m4-9v9M4 21h16M3 19h18"/></svg>',
+  sports: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7 3 2v4l-3 2-3-2V9l3-2Zm0 0V3m3 6 4-1m-4 5 2 4m-5-2-2 4m-1-6-4 1"/></svg>',
+  culture: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-4 0-7 2.6-7 6.2S8 16 12 16s7-3.2 7-6.8S16 3 12 3Z"/><path d="M5.5 13.5c-1.4 1.3-2 3.7-.5 5.7 1.2 1.6 3.3 1.4 4.4.1m9.1-5.8c1.4 1.3 2 3.7.5 5.7-1.2 1.6-3.3 1.4-4.4.1M9 9h.1m5.8 0h.1M9 12c1.8 1.3 4.2 1.3 6 0"/></svg>',
+  local: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/></svg>',
+  arab: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V9l8-5 8 5v11M2 20h20M8 20v-6h8v6M9 9h.1m5.8 0h.1"/></svg>',
+  intl: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  sportsLocal: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V8l7-5 7 5v12M8 20v-5h8v5M3 10h18"/></svg>',
+  sportsArab: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0V4Zm5 8v7m-4 0h8m-9 3h10M7 6H4v2a4 4 0 0 0 4 4m9-6h3v2a4 4 0 0 1-4 4"/></svg>',
+  sportsIntl: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m12 7 3 2v4l-3 2-3-2V9l3-2Zm-9 5h6m6 0h6m-9 9v-6"/></svg>',
+  all: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>'
+};
+const iconSvg = (name) => ICONS[name] || ICONS.all;
 const toggleAdminBtn = el("toggleAdminBtn"), refreshAutoBtn = el("refreshAutoBtn"), lockAdminBtn = el("lockAdminBtn");
 const adminPanel = el("adminPanel"), autoSyncStatus = el("autoSyncStatus");
 const siteTitleText = el("siteTitleText"), siteSubtitleText = el("siteSubtitleText"), defaultLogoSvg = el("defaultLogoSvg"), customLogoImg = el("customLogoImg");
@@ -185,31 +198,37 @@ function getCategoryBadgeClass(cat) {
 }
 
 function renderWindowHeader() {
-  mainWindowsNav.querySelectorAll(".win-tab").forEach((b) => b.classList.toggle("active", b.dataset.win === activeWindow));
+  mainWindowsNav.querySelectorAll(".win-tab").forEach((b) => {
+    const selected = b.dataset.win === activeWindow;
+    b.classList.toggle("active", selected);
+    b.setAttribute("aria-pressed", String(selected));
+  });
   windowBanner.className = `window-banner banner-${activeWindow}`;
 
   if (activeWindow === "politics") {
+    subCategoriesBar.dataset.window = "politics";
     subCategoriesBar.classList.remove("hidden");
     subCategoriesBar.innerHTML = ["الكل", "محلية", "عربي", "دولية"].map((s) => {
-      const ico = s === "محلية" ? "🏛️" : s === "عربي" ? "🕌" : s === "دولية" ? "🌐" : "📌";
-      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}">${ico} ${s === "الكل" ? "جميع السياسية" : "سياسة " + s}</button>`;
+      const icon = s === "محلية" ? "local" : s === "عربي" ? "arab" : s === "دولية" ? "intl" : "all";
+      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}" aria-pressed="${activeSubCat === s}"><span class="sub-icon">${iconSvg(icon)}</span><span>${s === "الكل" ? "جميع السياسية" : "سياسة " + s}</span></button>`;
     }).join("");
-    bannerIcon.textContent = "🏛️";
+    bannerIcon.innerHTML = iconSvg("politics");
     bannerTitle.textContent = activeSubCat === "الكل" ? "النافذة السياسية — جميع الأقسام السياسية" : `النافذة السياسية — قسم ${activeSubCat}`;
     bannerDesc.textContent = "متابعة رسمية للشؤون والملفات السياسية بأقسامها: محلية، عربي، ودولية.";
   } else if (activeWindow === "sports") {
+    subCategoriesBar.dataset.window = "sports";
     subCategoriesBar.classList.remove("hidden");
     subCategoriesBar.innerHTML = ["الكل", "محلية", "عربي", "دولية"].map((s) => {
-      const ico = s === "محلية" ? "🏟️" : s === "عربي" ? "🏆" : s === "دولية" ? "🌍" : "⚽";
-      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}">${ico} ${s === "الكل" ? "جميع الرياضية" : "رياضة " + s}</button>`;
+      const icon = s === "محلية" ? "sportsLocal" : s === "عربي" ? "sportsArab" : s === "دولية" ? "sportsIntl" : "all";
+      return `<button type="button" class="sub-cat-btn ${activeSubCat === s ? "active" : ""}" data-sub="${s}" aria-pressed="${activeSubCat === s}"><span class="sub-icon">${iconSvg(icon)}</span><span>${s === "الكل" ? "جميع الرياضية" : "رياضة " + s}</span></button>`;
     }).join("");
-    bannerIcon.textContent = "⚽";
+    bannerIcon.innerHTML = iconSvg("sports");
     bannerTitle.textContent = activeSubCat === "الكل" ? "النافذة الرياضية — جميع الأقسام الرياضية" : `النافذة الرياضية — قسم ${activeSubCat}`;
     bannerDesc.textContent = "تغطية رياضية متكاملة (محلية، عربي، دولية) من كووورة، في الجول، يلا كورة، يمن تيم، يمن مونيتور، رياضة، السبورت، سوفا سكور، فلاش سكور، TOD، والجزيرة نت.";
   } else {
     subCategoriesBar.classList.add("hidden");
     subCategoriesBar.innerHTML = "";
-    bannerIcon.textContent = "🎭";
+    bannerIcon.innerHTML = iconSvg("culture");
     bannerTitle.textContent = "نافذة منوعات وثقافة";
     bannerDesc.textContent = "إضاءات فكرية وفنية وثقافية ومجتمعية ومحتوى متنوع.";
   }
@@ -243,10 +262,10 @@ function renderFeed() {
     const likesCnt = getLikesCount(idStr);
     const commentsCnt = getCommentsList(idStr).length;
     const imgBlock = isSafeImageSrc(item.image)
-      ? `<div class="news-img-container"><img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.closest('.news-img-container').style.display='none'" /><div class="img-watermark-bar"><span>🎙️</span><span>${escapeHtml(KAYAN_TAG)}</span></div></div>`
+      ? `<div class="news-img-container"><img class="news-thumb" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.title)}" loading="lazy" onerror="this.closest('.news-img-container').style.display='none'" /><div class="img-watermark-bar"><span>${escapeHtml(KAYAN_TAG)}</span></div></div>`
       : "";
     const adminControls = isUnlocked ? `<div class="admin-actions"><button class="btn-edit" data-edit="${escapeAttr(idStr)}" type="button">تعديل</button><button class="btn-delete" data-del="${escapeAttr(idStr)}" type="button">حذف</button></div>` : "";
-    return `<article class="news-card" data-open="${escapeAttr(idStr)}">${imgBlock}<div class="news-body-wrap"><div class="news-meta"><span class="news-cat ${getCategoryBadgeClass(cat)}">${escapeHtml(cat)}</span><span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span><span>${escapeHtml(item.createdAt || "")}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><div class="article-signature-box">🎙️ ${escapeHtml(KAYAN_TAG)}</div><div class="card-engagement"><button type="button" class="card-like-btn ${liked ? "liked" : ""}" data-like="${escapeAttr(idStr)}">❤️ إعجاب (${likesCnt})</button><span class="card-comment-hint">💬 تعليقات (${commentsCnt})</span></div>${adminControls}</div></article>`;
+    return `<article class="news-card" data-open="${escapeAttr(idStr)}" tabindex="0" aria-label="فتح الخبر: ${escapeAttr(item.title)}">${imgBlock}<div class="news-body-wrap"><div class="news-meta"><span class="news-cat ${getCategoryBadgeClass(cat)}">${escapeHtml(cat)}</span><span class="news-source">${escapeHtml(item.source || siteSettings.siteName)}</span><span>${escapeHtml(item.createdAt || "")}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.body)}</p><div class="article-signature-box">${escapeHtml(KAYAN_TAG)}</div><div class="card-engagement"><button type="button" class="card-like-btn ${liked ? "liked" : ""}" data-like="${escapeAttr(idStr)}" aria-pressed="${liked}" aria-label="${liked ? "إلغاء الإعجاب" : "إعجاب"} بالخبر">إعجاب (${likesCnt})</button><button type="button" class="card-comment-hint" aria-label="عرض ${commentsCnt} تعليقاً">التعليقات (${commentsCnt})</button></div>${adminControls}</div></article>`;
   }).join("");
 }
 
@@ -380,9 +399,13 @@ function applySiteSettings(cfg) {
 
 function renderSubStatus() {
   subStatusText.textContent = subState.subscribed
-    ? `أنت مشترك ومتابع في كيان نيوز${subState.contact ? " (" + subState.contact + ")" : ""} — ستصلك التحديثات.`
-    : "اشترك لتصلك آخر الأخبار والتحديثات أولاً بأول.";
-  subscribeBtn.textContent = subState.subscribed ? "✓ مشترك" : "اشتراك ومتابعة";
+    ? `تم تسجيلك للمتابعة في كيان نيوز${subState.contact ? " (" + subState.contact + ")" : ""}. شارك موجز الأخبار ورابط الموقع من الزر المجاور.`
+    : "سجّل بريدك أو اسمك للمتابعة. يمكنك مشاركة موجز الأخبار ورابط الموقع؛ الإرسال الآلي غير متاح حالياً.";
+  const currentButton = el("subscribeBtn");
+  if (currentButton) {
+    currentButton.textContent = subState.subscribed ? "تم التسجيل" : "اشتراك ومتابعة";
+    currentButton.setAttribute("aria-pressed", String(subState.subscribed));
+  }
 }
 
 function toggleLike(idStr) {
@@ -406,6 +429,7 @@ function renderModalEngagement(idStr) {
   const liked = engageState.likedIds.includes(idStr);
   const btn = el("modalLikeBtn");
   btn.classList.toggle("liked", liked);
+  btn.setAttribute("aria-pressed", String(liked));
   el("modalLikeCount").textContent = String(getLikesCount(idStr));
   renderCommentsList(idStr);
 }
@@ -608,6 +632,14 @@ newsFeed.addEventListener("click", async (e) => {
   }
   const card = e.target.closest("article[data-open]");
   if (card) openArticleModal(card.dataset.open);
+});
+
+newsFeed.addEventListener("keydown", (e) => {
+  const card = e.target.closest("article[data-open]");
+  if (card && e.target === card && (e.key === "Enter" || e.key === " ")) {
+    e.preventDefault();
+    openArticleModal(card.dataset.open);
+  }
 });
 
 el("modalLikeBtn").addEventListener("click", () => { if (currentModalNewsId) toggleLike(currentModalNewsId); });
@@ -1086,14 +1118,18 @@ window.addEventListener("DOMContentLoaded", () => {
       const rec = { contact, date: new Date().toLocaleString("ar-EG") };
       subsCache.unshift(rec);
       paintSubscribersBox();
+      let savedToCloud = false;
       try {
-        await fetch(SUBS_URL, {
+        const response = await fetch(SUBS_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(rec)
         });
+        savedToCloud = response.ok;
       } catch {}
-      alert("تم اشتراكك ومتابعتك بنجاح!");
+      subStatusText.textContent = savedToCloud
+        ? `تم تسجيل متابعتك${contact !== "متابع جديد" ? ` (${contact})` : ""}. لا يتوفر إرسال تلقائي للأخبار حالياً؛ استخدم زر مشاركة الموجز عند رغبتك.`
+        : "تعذر تسجيل المتابعة سحابياً؛ حُفظ تفضيل المتابعة على هذا الجهاز فقط. مشاركة الموجز متاحة يدوياً.";
     });
   }
 
