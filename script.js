@@ -1155,3 +1155,211 @@ window.addEventListener("DOMContentLoaded", () => {
   pullAllCloudData();
   setInterval(pullAllCloudData, 15000);
 });
+
+(() => {
+  const BASE_DB = "https://kayan-news-575ab-default-rtdb.firebaseio.com";
+  const SUBS_ENDPOINT = `${BASE_DB}/subscribers.json`;
+  const COMMENTS_ENDPOINT = `${BASE_DB}/comments`;
+  const LIKES_ENDPOINT = `${BASE_DB}/likes`;
+
+  let latestSubs = [];
+  let latestComments = {};
+  let latestLikes = {};
+
+  function renderSubsCardInAdmin() {
+    const adminBox = document.getElementById("adminPanel");
+    if (!adminBox) return;
+    let card = document.getElementById("kayanSubsCard");
+    if (!card) {
+      card = document.createElement("div");
+      card.id = "kayanSubsCard";
+      card.className = "admin-box";
+      adminBox.appendChild(card);
+    }
+    const itemsHtml = latestSubs.length
+      ? latestSubs
+          .map(
+            (s) =>
+              `<div style="padding:6px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                <span><strong>${escapeHtml(s.contact || "متابع")}</strong></span>
+                <small style="color:#64748b;">${escapeHtml(s.date || "")}</small>
+              </div>`
+          )
+          .join("")
+      : `<p style="color:#64748b;font-size:0.88rem;">لا يوجد متابعون مسجلون حالياً.</p>`;
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <h3>👥 عدد المشتركين والمتابعين: <span id="kayanSubsCountNum" style="color:#1d4ed8;">${latestSubs.length}</span></h3>
+        <button type="button" id="kayanForceSyncBtn" class="btn-sync">🔄 تحديث المتابعين والتعليقات</button>
+      </div>
+      <div id="kayanSubsListBox" style="max-height:190px;overflow-y:auto;margin-top:6px;">${itemsHtml}</div>
+    `;
+
+    document.getElementById("kayanForceSyncBtn")?.addEventListener("click", syncEngagementAndSubs);
+  }
+
+  function paintCommentsInModal(newsId) {
+    if (!newsId) return;
+    const key = String(newsId);
+    const cloudList = Array.isArray(latestComments[key]) ? latestComments[key] : [];
+    const localList = Array.isArray(engageState?.comments?.[key]) ? engageState.comments[key] : [];
+
+    const seen = new Set();
+    const merged = [...cloudList, ...localList].filter((c) => {
+      if (!c || !c.text) return false;
+      const sig = `${c.author || ""}|${c.text}|${c.date || ""}`;
+      if (seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    });
+
+    const countEl = document.getElementById("modalCommentsCount");
+    const listEl = document.getElementById("commentsList");
+    if (countEl) countEl.textContent = String(merged.length);
+    if (listEl) {
+      listEl.innerHTML = merged.length
+        ? merged
+            .map(
+              (c) => `<div class="comment-item">
+                <div class="comment-meta"><span>${escapeHtml(c.author || "قارئ كيان")}</span><span>${escapeHtml(c.date || "")}</span></div>
+                <div class="comment-body">${escapeHtml(c.text)}</div>
+              </div>`
+            )
+            .join("")
+        : `<p style="color:#64748b;font-size:0.86rem;">لا توجد تعليقات بعد؛ كن أول من يشارك برأيه.</p>`;
+    }
+  }
+
+  function paintLikesInModal(newsId) {
+    if (!newsId) return;
+    const key = String(newsId);
+    const cloudVal = Number(latestLikes[key] || 0);
+    const localMine = engageState?.likedIds?.includes(key) ? 1 : 0;
+    const total = Math.max(cloudVal, localMine);
+    const countEl = document.getElementById("modalLikeCount");
+    const btnEl = document.getElementById("modalLikeBtn");
+    if (countEl) countEl.textContent = String(total);
+    if (btnEl) btnEl.classList.toggle("liked", Boolean(localMine));
+  }
+
+  async function syncEngagementAndSubs() {
+    const t = Date.now();
+    try {
+      const rSub = await fetch(`${SUBS_ENDPOINT}?_=${t}`);
+      if (rSub.ok) {
+        const dSub = await rSub.json();
+        latestSubs = dSub && typeof dSub === "object" ? Object.values(dSub).reverse() : [];
+        renderSubsCardInAdmin();
+      }
+    } catch {}
+
+    try {
+      const rCom = await fetch(`${COMMENTS_ENDPOINT}.json?_=${t}`);
+      if (rCom.ok) {
+        const dCom = await rCom.json();
+        latestComments = dCom && typeof dCom === "object" ? dCom : {};
+      }
+    } catch {}
+
+    try {
+      const rLik = await fetch(`${LIKES_ENDPOINT}.json?_=${t}`);
+      if (rLik.ok) {
+        const dLik = await rLik.json();
+        latestLikes = dLik && typeof dLik === "object" ? dLik : {};
+      }
+    } catch {}
+
+    if (currentModalNewsId) {
+      paintCommentsInModal(currentModalNewsId);
+      paintLikesInModal(currentModalNewsId);
+    }
+  }
+
+  const subBtn = document.getElementById("subscribeBtn");
+  if (subBtn) {
+    subBtn.addEventListener("click", async () => {
+      const inputEl = document.getElementById("subscriberContactInput");
+      const contact = (inputEl ? inputEl.value.trim() : "") || subState?.contact || "متابع جديد";
+      const entry = { contact, date: new Date().toLocaleString("ar-EG") };
+      latestSubs = [entry, ...latestSubs];
+      renderSubsCardInAdmin();
+      try {
+        await fetch(SUBS_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry)
+        });
+        await syncEngagementAndSubs();
+      } catch {}
+    });
+  }
+
+  const commentForm = document.getElementById("commentForm");
+  if (commentForm) {
+    commentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentModalNewsId) return;
+      const key = String(currentModalNewsId);
+      const txtInput = document.getElementById("commentTextInput");
+      const authInput = document.getElementById("commentAuthorInput");
+      const text = txtInput ? txtInput.value.trim() : "";
+      if (!text) return;
+      const author = (authInput ? authInput.value.trim() : "") || "قارئ كيان";
+      const newItem = { author, text, date: new Date().toLocaleString("ar-EG") };
+
+      const prevList = Array.isArray(latestComments[key]) ? latestComments[key] : [];
+      const updatedList = [newItem, ...prevList];
+      latestComments[key] = updatedList;
+      if (engageState && engageState.comments) {
+        engageState.comments[key] = updatedList;
+        saveEngageState(engageState);
+      }
+      if (txtInput) txtInput.value = "";
+      paintCommentsInModal(key);
+
+      try {
+        await fetch(`${COMMENTS_ENDPOINT}/${encodeURIComponent(key)}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedList)
+        });
+        await syncEngagementAndSubs();
+      } catch {}
+    });
+  }
+
+  const modalLikeBtn = document.getElementById("modalLikeBtn");
+  if (modalLikeBtn) {
+    modalLikeBtn.addEventListener("click", async () => {
+      if (!currentModalNewsId) return;
+      const key = String(currentModalNewsId);
+      const already = engageState?.likedIds?.includes(key);
+      const currentNum = Number(document.getElementById("modalLikeCount")?.textContent || 0);
+      const nextNum = already ? Math.max(0, currentNum - 1) : currentNum + 1;
+      latestLikes[key] = nextNum;
+      paintLikesInModal(key);
+      try {
+        await fetch(`${LIKES_ENDPOINT}/${encodeURIComponent(key)}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextNum)
+        });
+      } catch {}
+    });
+  }
+
+  const origOpenModal = window.openArticleModal || (typeof openArticleModal === "function" ? openArticleModal : null);
+  if (origOpenModal) {
+    openArticleModal = function (idStr) {
+      origOpenModal(idStr);
+      paintCommentsInModal(idStr);
+      paintLikesInModal(idStr);
+      syncEngagementAndSubs();
+    };
+  }
+
+  renderSubsCardInAdmin();
+  syncEngagementAndSubs();
+  setInterval(syncEngagementAndSubs, 10000);
+})();
