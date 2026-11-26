@@ -845,3 +845,313 @@ setInterval(() => {
   syncLikesFromCloud();
   syncCommentsFromCloud();
 }, 30000);
+
+window.addEventListener("DOMContentLoaded", () => {
+  const SUBS_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/subscribers.json";
+  const LIKES_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/likes.json";
+  const COMMENTS_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/comments.json";
+  const NEWS_ROOT = "https://kayan-news-575ab-default-rtdb.firebaseio.com/news";
+  const SETTINGS_URL = "https://kayan-news-575ab-default-rtdb.firebaseio.com/settings.json";
+
+  let subsCache = [];
+  let likesCache = {};
+  let commentsCache = {};
+
+  function mountSubscribersBox() {
+    const panel = document.getElementById("adminPanel");
+    if (!panel || document.getElementById("liveSubsPanel")) return;
+    const box = document.createElement("div");
+    box.id = "liveSubsPanel";
+    box.className = "admin-box";
+    box.innerHTML = `
+      <h3>إجمالي المشتركين والمتابعين (<span id="liveSubsTotal">0</span>)</h3>
+      <button type="button" id="manualCloudSyncBtn" class="btn-sync">مزامنة فورية من السحابة</button>
+      <div id="liveSubsRows" style="margin-top:8px;font-size:0.85rem;color:#1e293b;max-height:160px;overflow-y:auto;">جاري التحميل...</div>
+    `;
+    panel.appendChild(box);
+    document.getElementById("manualCloudSyncBtn")?.addEventListener("click", pullAllCloudData);
+  }
+
+  function paintSubscribersBox() {
+    mountSubscribersBox();
+    const totalEl = document.getElementById("liveSubsTotal");
+    const rowsEl = document.getElementById("liveSubsRows");
+    if (totalEl) totalEl.textContent = String(subsCache.length);
+    if (rowsEl) {
+      rowsEl.innerHTML = subsCache.length
+        ? subsCache.map((s) => `<div style="padding:5px 0;border-bottom:1px solid #e2e8f0;">• <strong>${escapeHtml(s.contact || "متابع")}</strong> — <span>${escapeHtml(s.date || "")}</span></div>`).join("")
+        : "لا يوجد مشتركون مسجلون بعد.";
+    }
+  }
+
+  async function pushNewsItem(item) {
+    try {
+      await fetch(`${NEWS_ROOT}/${encodeURIComponent(String(item.id))}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(item)
+      });
+    } catch {}
+  }
+
+  async function pushSettings(cfg) {
+    try {
+      await fetch(SETTINGS_URL, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cfg)
+      });
+    } catch {}
+  }
+
+  async function pullAllCloudData() {
+    const stamp = Date.now();
+    try {
+      const sRes = await fetch(`${SETTINGS_URL}?_=${stamp}`);
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        if (sData && typeof sData === "object") {
+          const merged = { ...DEFAULT_SETTINGS, ...sData };
+          saveLocalSettings(merged);
+          applySiteSettings(merged);
+        }
+      }
+    } catch {}
+
+    try {
+      const nRes = await fetch(`${NEWS_ROOT}.json?_=${stamp}`);
+      if (nRes.ok) {
+        const nData = await nRes.json();
+        if (nData && typeof nData === "object") {
+          const cloudItems = Array.isArray(nData) ? nData.filter(Boolean) : Object.entries(nData).map(([k, v]) => ({ id: k, ...v }));
+          if (cloudItems.length) {
+            const byId = new Map();
+            [...cloudItems, ...newsList].forEach((it) => { if (it && it.id) byId.set(String(it.id), it); });
+            newsList = Array.from(byId.values()).sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0)).slice(0, 200);
+            saveLocalNews(newsList);
+            renderTicker();
+            renderFeed();
+          }
+        }
+      }
+    } catch {}
+
+    try {
+      const subRes = await fetch(`${SUBS_URL}?_=${stamp}`);
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        subsCache = subData && typeof subData === "object" ? Object.values(subData) : [];
+        paintSubscribersBox();
+      }
+    } catch {}
+
+    try {
+      const lRes = await fetch(`${LIKES_URL}?_=${stamp}`);
+      if (lRes.ok) {
+        const lData = await lRes.json();
+        likesCache = lData && typeof lData === "object" ? lData : {};
+      }
+    } catch {}
+
+    try {
+      const cRes = await fetch(`${COMMENTS_URL}?_=${stamp}`);
+      if (cRes.ok) {
+        const cData = await cRes.json();
+        commentsCache = cData && typeof cData === "object" ? cData : {};
+      }
+    } catch {}
+
+    renderFeed();
+    if (currentModalNewsId) renderModalEngagement(currentModalNewsId);
+  }
+
+  getLikesCount = function (id) {
+    const k = String(id);
+    const cloudVal = Number(likesCache[k] || 0);
+    const localExtra = Number(engageState.extraLikes[k] || 0);
+    const mine = engageState.likedIds.includes(k) ? 1 : 0;
+    return Math.max(cloudVal, localExtra + mine);
+  };
+
+  getCommentsList = function (id) {
+    const k = String(id);
+    const cList = Array.isArray(commentsCache[k]) ? commentsCache[k] : [];
+    const lList = Array.isArray(engageState.comments[k]) ? engageState.comments[k] : [];
+    const seen = new Set();
+    return [...cList, ...lList].filter((c) => {
+      const sig = `${c.author || ""}|${c.text || ""}|${c.date || ""}`;
+      if (seen.has(sig)) return false;
+      seen.add(sig);
+      return true;
+    });
+  };
+
+  toggleLike = async function (idStr) {
+    const k = String(idStr);
+    const pos = engageState.likedIds.indexOf(k);
+    const nowCount = getLikesCount(k);
+    if (pos >= 0) {
+      engageState.likedIds.splice(pos, 1);
+      likesCache[k] = Math.max(0, nowCount - 1);
+    } else {
+      engageState.likedIds.push(k);
+      likesCache[k] = nowCount + 1;
+    }
+    saveEngageState(engageState);
+    renderFeed();
+    if (currentModalNewsId === k) renderModalEngagement(k);
+    try {
+      await fetch(`${LIKES_URL.replace(".json", "")}/${encodeURIComponent(k)}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(likesCache[k])
+      });
+    } catch {}
+  };
+
+  const origNewsForm = document.getElementById("newsForm");
+  if (origNewsForm) {
+    const clonedNewsForm = origNewsForm.cloneNode(true);
+    origNewsForm.parentNode.replaceChild(clonedNewsForm, origNewsForm);
+    clonedNewsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!isUnlocked) return;
+      const title = document.getElementById("newsTitle").value.trim();
+      const body = document.getElementById("newsBody").value.trim();
+      if (!title || !body) return;
+      const rawImg = document.getElementById("newsImage").value.trim();
+      const item = {
+        id: editingId || `manual_${Date.now()}`,
+        timestamp: Date.now(),
+        title,
+        source: document.getElementById("newsSource").value.trim() || siteSettings.siteName,
+        image: isSafeImageSrc(rawImg) ? rawImg : "",
+        category: document.getElementById("newsCategory").value,
+        breaking: document.getElementById("isBreaking").checked,
+        link: "",
+        body,
+        createdAt: new Date().toLocaleString("ar-EG")
+      };
+      newsList = editingId ? newsList.map((n) => (String(n.id) === String(editingId) ? item : n)) : [item, ...newsList];
+      editingId = null;
+      document.getElementById("editNewsId").value = "";
+      clonedNewsForm.reset();
+      document.getElementById("newsImgPreview").src = "";
+      document.getElementById("newsImgPreviewWrap").classList.add("hidden");
+      document.getElementById("clearNewsImgBtn").classList.add("hidden");
+      saveLocalNews(newsList);
+      renderTicker();
+      renderFeed();
+      await pushNewsItem(item);
+    });
+  }
+
+  const origSettingsForm = document.getElementById("siteSettingsForm");
+  if (origSettingsForm) {
+    const clonedSettingsForm = origSettingsForm.cloneNode(true);
+    origSettingsForm.parentNode.replaceChild(clonedSettingsForm, origSettingsForm);
+    clonedSettingsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!isUnlocked) return;
+      const rawLogo = document.getElementById("cfgLogoUrl").value.trim();
+      const updated = {
+        siteName: document.getElementById("cfgSiteName").value.trim() || DEFAULT_SETTINGS.siteName,
+        subtitle: document.getElementById("cfgSubtitle").value.trim() || DEFAULT_SETTINGS.subtitle,
+        logoUrl: isSafeImageSrc(rawLogo) ? rawLogo : "",
+        accentColor: document.getElementById("cfgAccentColor").value || DEFAULT_SETTINGS.accentColor,
+        aboutText: document.getElementById("cfgAboutText").value.trim() || DEFAULT_SETTINGS.aboutText,
+        overviewText: document.getElementById("cfgOverviewText").value.trim() || DEFAULT_SETTINGS.overviewText,
+        emailText: document.getElementById("cfgEmailText").value.trim() || DEFAULT_SETTINGS.emailText,
+        socialHandle: document.getElementById("cfgSocialHandle").value.trim() || DEFAULT_SETTINGS.socialHandle,
+        orgText: document.getElementById("cfgOrgText").value.trim() || DEFAULT_SETTINGS.orgText
+      };
+      applySiteSettings(updated);
+      saveLocalSettings(updated);
+      await pushSettings(updated);
+      const st = document.getElementById("settingsStatus");
+      if (st) st.textContent = "تم حفظ الشعار والإعدادات ومزامنتها سحابياً.";
+    });
+  }
+
+  const origSubBtn = document.getElementById("subscribeBtn");
+  if (origSubBtn) {
+    const clonedSubBtn = origSubBtn.cloneNode(true);
+    origSubBtn.parentNode.replaceChild(clonedSubBtn, origSubBtn);
+    clonedSubBtn.addEventListener("click", async () => {
+      const inp = document.getElementById("subscriberContactInput");
+      const contact = (inp ? inp.value.trim() : "") || subState.contact || "متابع جديد";
+      subState = { subscribed: true, contact };
+      saveSubState(subState);
+      renderSubStatus();
+      const rec = { contact, date: new Date().toLocaleString("ar-EG") };
+      subsCache.unshift(rec);
+      paintSubscribersBox();
+      try {
+        await fetch(SUBS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(rec)
+        });
+      } catch {}
+      alert("تم اشتراكك ومتابعتك بنجاح!");
+    });
+  }
+
+  const origCommentForm = document.getElementById("commentForm");
+  if (origCommentForm) {
+    const clonedCommentForm = origCommentForm.cloneNode(true);
+    origCommentForm.parentNode.replaceChild(clonedCommentForm, origCommentForm);
+    clonedCommentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentModalNewsId) return;
+      const k = String(currentModalNewsId);
+      const txtEl = document.getElementById("commentTextInput");
+      const authEl = document.getElementById("commentAuthorInput");
+      const txt = txtEl ? txtEl.value.trim() : "";
+      if (!txt) return;
+      const author = (authEl ? authEl.value.trim() : "") || "قارئ كيان";
+      const entry = { author, text: txt, date: new Date().toLocaleString("ar-EG") };
+      const nextArr = [entry, ...getCommentsList(k)];
+      engageState.comments[k] = nextArr;
+      commentsCache[k] = nextArr;
+      saveEngageState(engageState);
+      if (txtEl) txtEl.value = "";
+      renderCommentsList(k);
+      renderFeed();
+      try {
+        await fetch(`${COMMENTS_URL.replace(".json", "")}/${encodeURIComponent(k)}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nextArr)
+        });
+      } catch {}
+    });
+  }
+
+  const origShareBtn = document.getElementById("modalShareArticleBtn");
+  if (origShareBtn) {
+    const clonedShareBtn = origShareBtn.cloneNode(true);
+    origShareBtn.parentNode.replaceChild(clonedShareBtn, origShareBtn);
+    clonedShareBtn.addEventListener("click", async () => {
+      const item = newsList.find((n) => String(n.id) === String(currentModalNewsId));
+      if (!item) return;
+      const msg = `${item.title}\n\n${item.body}\n\n${KAYAN_TAG}\n${SITE_URL}`;
+      if (navigator.share && isSafeImageSrc(item.image) && item.image.startsWith("data:image/")) {
+        try {
+          const resp = await fetch(item.image);
+          const blob = await resp.blob();
+          const file = new File([blob], "kayan-news.jpg", { type: blob.type || "image/jpeg" });
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ title: item.title, text: msg, files: [file] });
+            return;
+          }
+        } catch {}
+      }
+      await shareTextOrLink(item.title, `${item.body}\n${KAYAN_TAG}`, SITE_URL);
+    });
+  }
+
+  mountSubscribersBox();
+  pullAllCloudData();
+  setInterval(pullAllCloudData, 15000);
+});
